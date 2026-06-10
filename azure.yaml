@@ -1,0 +1,15 @@
+# Proposed azd project definition for SREinProd
+name: sreinprod
+metadata:
+  template: sreinprod@0.1.0
+
+# Replace / expand these services if you decide to deploy a full sample app.
+services:
+  storefront:
+    project: ./sample-app/storefront
+    language: js
+    host: containerapp
+  api:
+    project: ./sample-app/api
+    language: dotnet
+    host: containerapp
