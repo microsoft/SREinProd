@@ -48,3 +48,13 @@ logs/
 *.pfx
 secrets.*
 local.settings.json
+
+# Sample app (cloned on demand by scripts/clone-sample-app.ps1)
+sample-app/*
+!sample-app/PLACEHOLDER.md
+
+# Local environment overrides (copy of scripts/env.template)
+scripts/env.conf
+
+# Deploy artifacts produced by scripts/deploy-demo-env.ps1
+.artifacts/

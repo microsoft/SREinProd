@@ -1,15 +1,51 @@
-# Proposed azd project definition for SREinProd
+# Azure Developer CLI definition for the SREinProd workshop.
+#
+# Workload: Azure-Samples/app-service-dotnet-agent-tutorial
+# https://github.com/Azure-Samples/app-service-dotnet-agent-tutorial
+#
+# The sample is cloned into ./sample-app/ by scripts/clone-sample-app.ps1
+# (or by the hook below). `azd up` will then provision the infra in
+# ./infra/ and deploy the .NET 9 app to the production slot of the App
+# Service web app. The staging slot is configured by Bicep with
+# INJECT_ERROR=1 and is updated to the same bits via the postdeploy hook.
+
 name: sreinprod
 metadata:
-  template: sreinprod@0.1.0
+  template: sreinprod@0.2.0
 
-# Replace / expand these services if you decide to deploy a full sample app.
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
 services:
-  storefront:
-    project: ./sample-app/storefront
-    language: js
-    host: containerapp
-  api:
-    project: ./sample-app/api
+  app:
+    project: ./sample-app
     language: dotnet
-    host: containerapp
+    host: appservice
+
+hooks:
+  preprovision:
+    windows:
+      shell: pwsh
+      run: ./scripts/clone-sample-app.ps1
+      continueOnError: false
+      interactive: false
+    posix:
+      shell: sh
+      run: pwsh ./scripts/clone-sample-app.ps1
+      continueOnError: false
+      interactive: false
+
+  postdeploy:
+    windows:
+      shell: pwsh
+      run: ./scripts/deploy-to-slot.ps1 -SlotName staging
+      continueOnError: true
+      interactive: false
+    posix:
+      shell: sh
+      run: pwsh ./scripts/deploy-to-slot.ps1 -SlotName staging
+      continueOnError: true
+      interactive: false
+

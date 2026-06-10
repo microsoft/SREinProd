@@ -4,6 +4,21 @@
   "parameters": {
     "location": {
       "value": "eastus2"
+    },
+    "workloadName": {
+      "value": "sreinprod"
+    },
+    "environmentName": {
+      "value": "demo"
+    },
+    "appServicePlanSku": {
+      "value": "S1"
+    },
+    "linuxFxVersion": {
+      "value": "DOTNETCORE|9.0"
+    },
+    "stagingSlotName": {
+      "value": "staging"
     }
   }
 }
