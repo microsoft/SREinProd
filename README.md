@@ -32,10 +32,34 @@ The sample is cloned on demand into `./sample-app/` by [`scripts/clone-sample-ap
 
 ## Quick start
 
-Two deployment paths are wired up:
+Two deployment paths are wired up.
 
-- **PowerShell + az CLI (recommended)** - interactive prompts for subscription, region, and resource group; preflight quota validation; deploys both slots reliably. See [`PS-SETUP.md`](./PS-SETUP.md).
-- **Azure Developer CLI** - one command (`azd up`), but with [two known sharp edges](./AZD-SETUP.md#known-issues-with-the-azd-path) on slot-enabled App Service apps. See [`AZD-SETUP.md`](./AZD-SETUP.md).
+### PowerShell + az CLI (recommended)
+
+```powershell
+pwsh ./scripts/deploy-demo-env.ps1
+```
+
+Full details in [`PS-SETUP.md`](./PS-SETUP.md). The interactive [`scripts/deploy-demo-env.ps1`](./scripts/deploy-demo-env.ps1) script:
+
+1. Checks `az`, `git`, and the .NET 9 SDK are installed.
+2. Reuses your existing `az` session, or runs `az login` only if needed.
+3. Prompts for the **subscription**, **resource group**, and **region** (with `scripts/env.conf` values as defaults) and persists your choices.
+4. Validates the region supports Linux App Service S1.
+5. Runs `az deployment group validate` as a **preflight** so quota / SKU / region issues surface immediately - and, on a quota failure, offers to re-pick the region and re-validate.
+6. Deploys [`infra/main.bicep`](./infra/main.bicep) (App Service plan, web app, `staging` slot, Log Analytics, Application Insights, Http5xx alert).
+7. Clones the sample app into `./sample-app/`.
+8. Builds with `dotnet publish -c Release` and deploys to both the **production** and **staging** slots with `az webapp deploy --slot` (with built-in cold-start retry for first deploys on a fresh plan).
+9. Runs `scripts/smoke-test.ps1` against both slots and writes the deployment outputs back into `scripts/env.conf` for the other workshop scripts to consume.
+
+### Azure Developer CLI
+
+```powershell
+pwsh ./scripts/clone-sample-app.ps1   # required before `azd up`
+azd up
+```
+
+Full details in [`AZD-SETUP.md`](./AZD-SETUP.md). Note the [two known sharp edges](./AZD-SETUP.md#known-issues-with-the-azd-path) on slot-enabled App Service apps (init-time project validation and a slot-deploy hang).
 
 Both paths produce the same environment: a healthy production slot, a faulty staging slot, Application Insights wired up, and an Http5xx alert ready for Azure SRE Agent to investigate during [Module 5](./Workshop/5-Incident-Drill.md).
 
