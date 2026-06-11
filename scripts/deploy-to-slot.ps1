@@ -89,10 +89,59 @@ $deployArgs = @(
     '--type', 'zip'
 )
 # 'production' is not a real slot - omit --slot to deploy to the live site.
-if ($SlotName -and $SlotName -ne 'production') {
+$isStaging = $SlotName -and $SlotName -ne 'production'
+if ($isStaging) {
     $deployArgs += @('--slot', $SlotName)
 }
-az @deployArgs | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "az webapp deploy failed for slot '$SlotName'." }
+
+# Run az and capture all output so we can detect the cold-start false-timeout.
+$tmpOut = [System.IO.Path]::GetTempFileName()
+$tmpErr = [System.IO.Path]::GetTempFileName()
+$proc = Start-Process -FilePath 'az' -ArgumentList $deployArgs -NoNewWindow -Wait -PassThru `
+    -RedirectStandardOutput $tmpOut -RedirectStandardError $tmpErr
+$deployStdout = (Get-Content $tmpOut -Raw -ErrorAction SilentlyContinue)
+$deployStderr = (Get-Content $tmpErr -Raw -ErrorAction SilentlyContinue)
+Remove-Item $tmpOut, $tmpErr -ErrorAction SilentlyContinue
+if ($deployStdout) { Write-Host $deployStdout }
+if ($deployStderr) { Write-Host $deployStderr }
+
+if ($proc.ExitCode -ne 0) {
+    $combined = "$deployStdout`n$deployStderr"
+    $isColdStartTimeout = $combined -match 'failed to start within 10 mins|worker proccess failed to start|ContainerTimeout'
+    if (-not $isColdStartTimeout) {
+        throw "az webapp deploy failed for slot '$SlotName'."
+    }
+
+    # Cold-start can outlive az's 10-minute deployment poll on a fresh
+    # Linux App Service plan (the runtime image is being pulled and warmed
+    # for the first time). The deployment record itself is fine - just
+    # poll the slot URL ourselves for a few extra minutes before failing.
+    Write-Host '' -ForegroundColor Yellow
+    Write-Host 'az polling timed out on container cold-start. Verifying site responds directly...' -ForegroundColor Yellow
+
+    if ($isStaging) {
+        $defaultHostname = az webapp show -g $ResourceGroup -n $AppName --slot $SlotName --query 'defaultHostName' -o tsv
+    } else {
+        $defaultHostname = az webapp show -g $ResourceGroup -n $AppName --query 'defaultHostName' -o tsv
+    }
+    if (-not $defaultHostname) { throw "az webapp deploy failed for slot '$SlotName' and could not resolve a hostname to probe." }
+
+    $url = "https://$defaultHostname"
+    $deadline = (Get-Date).AddMinutes(5)
+    $ok = $false
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+            if ($r.StatusCode -ge 200 -and $r.StatusCode -lt 500) {
+                Write-Host ("Site responded {0} at {1}. Treating cold-start timeout as success." -f $r.StatusCode, $url) -ForegroundColor Green
+                $ok = $true
+                break
+            }
+        } catch {
+            Start-Sleep -Seconds 15
+        }
+    }
+    if (-not $ok) { throw "az webapp deploy timed out and the site at $url never came up within an additional 5 minutes." }
+}
 
 Write-Host ("Deployed to slot '{0}'." -f $SlotName) -ForegroundColor Green

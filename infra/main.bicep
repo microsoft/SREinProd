@@ -146,7 +146,11 @@ var commonAppSettings = [
 resource site 'Microsoft.Web/sites@2023-12-01' = {
   name: siteName
   location: location
-  tags: tags
+  // azd uses the 'azd-service-name' tag to locate the target Azure
+  // resource for the matching service in azure.yaml (services.app).
+  tags: union(tags, {
+    'azd-service-name': 'app'
+  })
   kind: 'app,linux'
   identity: {
     type: 'SystemAssigned'

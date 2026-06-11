@@ -2,8 +2,45 @@
 
 ## Setup issues
 
+### Preflight validation fails with `SubscriptionIsOverQuotaForSku`
+`scripts/deploy-demo-env.ps1` runs `az deployment group validate` before
+the real deploy specifically to catch this. The error message also names
+the limit (for example, *"Current Limit (Total VMs): 1, Current Usage: 1"*).
+In interactive mode the script offers to **pick a different region** and
+re-validates. To skip the prompt loop on CI, choose the region up-front:
+
+```powershell
+pwsh ./scripts/deploy-demo-env.ps1 -Location canadacentral -NonInteractive ...
+```
+
+If you must stay in the original region, request a quota increase before
+re-running:
+[Microsoft Learn: request a quota increase](https://learn.microsoft.com/azure/quotas/quickstart-increase-quota-portal).
+
+### `azd up` fails with `could not locate a dotnet project file for service app`
+`azd` validates the `services.app.project` path at init time, *before* any
+hook can fire. The sample must already be on disk. Run the clone script
+first, then re-run `azd up`:
+
+```powershell
+pwsh ./scripts/clone-sample-app.ps1
+azd up
+```
+
+### `azd deploy` hangs on `Checking deployment slots`
+Known issue on slot-enabled App Service apps: `azd`'s App Service publisher
+can stall here for tens of minutes and then time out. Use the PowerShell
+path instead - it deploys both slots directly with `az webapp deploy
+--slot`, which completes in under a minute per slot:
+
+```powershell
+pwsh ./scripts/deploy-demo-env.ps1
+```
+
 ### `clone-sample-app.ps1` says the directory already exists and is not empty
-Re-run with `-Force` to wipe `./sample-app/` and clone fresh:
+The script is idempotent for the normal cases (empty dir, existing git
+clone, dir containing only `PLACEHOLDER.md`). If you hit this error after
+a partial / aborted run, wipe and re-clone:
 ```powershell
 pwsh ./scripts/clone-sample-app.ps1 -Force
 ```
@@ -22,7 +59,22 @@ web app.
 ### Bicep deployment fails with `SkuNotAvailable`
 The demo defaults to S1 Linux. Switch `appServicePlanSku` (parameter file)
 or `AZURE_LOCATION` (`scripts/env.conf`) to a region where the SKU is
-available.
+available. `scripts/deploy-demo-env.ps1` also runs `az appservice
+list-locations --linux-workers-enabled --sku S1` to validate the region
+before submitting the deployment.
+
+### `az login` fails / loops across many tenants
+`scripts/deploy-demo-env.ps1` only calls `az login` when `az account show`
+returns no context, so a working `az` session is reused. If you have
+several tenants with Conditional Access policies and the script does
+trigger a login, sign in to the **specific tenant** that owns your
+subscription:
+
+```powershell
+az logout
+az login --tenant <your-tenant-id-or-domain>
+pwsh ./scripts/deploy-demo-env.ps1 -SubscriptionId <id>
+```
 
 ## Workshop runtime issues
 

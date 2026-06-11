@@ -3,11 +3,15 @@
 # Workload: Azure-Samples/app-service-dotnet-agent-tutorial
 # https://github.com/Azure-Samples/app-service-dotnet-agent-tutorial
 #
-# The sample is cloned into ./sample-app/ by scripts/clone-sample-app.ps1
-# (or by the hook below). `azd up` will then provision the infra in
-# ./infra/ and deploy the .NET 9 app to the production slot of the App
-# Service web app. The staging slot is configured by Bicep with
-# INJECT_ERROR=1 and is updated to the same bits via the postdeploy hook.
+# IMPORTANT: azd validates services.app.project at INIT time, before any
+# hook can fire. You must clone the sample BEFORE running `azd up`:
+#
+#     pwsh ./scripts/clone-sample-app.ps1
+#     azd up
+#
+# The `preprovision` hook below is a safety net that refreshes the clone
+# to the latest upstream commit on every `azd up`; it is not a first-run
+# installer.
 
 name: sreinprod
 metadata:

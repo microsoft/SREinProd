@@ -32,10 +32,10 @@ The sample is cloned on demand into `./sample-app/` by [`scripts/clone-sample-ap
 
 ## Quick start
 
-Two equivalent deployment paths are wired up:
+Two deployment paths are wired up:
 
-- **Azure Developer CLI** - one command (`azd up`). See [`AZD-SETUP.md`](./AZD-SETUP.md).
-- **PowerShell + az CLI** - explicit, classroom-friendly. See [`PS-SETUP.md`](./PS-SETUP.md).
+- **PowerShell + az CLI (recommended)** - interactive prompts for subscription, region, and resource group; preflight quota validation; deploys both slots reliably. See [`PS-SETUP.md`](./PS-SETUP.md).
+- **Azure Developer CLI** - one command (`azd up`), but with [two known sharp edges](./AZD-SETUP.md#known-issues-with-the-azd-path) on slot-enabled App Service apps. See [`AZD-SETUP.md`](./AZD-SETUP.md).
 
 Both paths produce the same environment: a healthy production slot, a faulty staging slot, Application Insights wired up, and an Http5xx alert ready for Azure SRE Agent to investigate during [Module 5](./Workshop/5-Incident-Drill.md).
 

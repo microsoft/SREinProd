@@ -56,13 +56,32 @@ if (Test-Path (Join-Path $TargetDir '.git')) {
     }
 }
 else {
-    if ((Test-Path $TargetDir) -and ((Get-ChildItem -Force $TargetDir | Measure-Object).Count -gt 0)) {
-        throw "$TargetDir exists and is not empty. Re-run with -Force to overwrite."
-    }
-    Write-Host "Cloning $RepoUrl ($Ref) into $TargetDir" -ForegroundColor Cyan
+    # Use `git init + fetch + checkout` instead of `git clone` so we can lay
+    # the upstream source down alongside any pre-existing files in the target
+    # (e.g. the committed sample-app/PLACEHOLDER.md). This makes the script
+    # idempotent regardless of whether the directory is empty, has only the
+    # placeholder, or is a stale partial clone.
+    Write-Host "Initializing $RepoUrl ($Ref) into $TargetDir" -ForegroundColor Cyan
     New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
-    git clone --depth 1 --branch $Ref $RepoUrl $TargetDir | Out-Null
-    Write-Host "Sample app cloned." -ForegroundColor Green
+    Push-Location $TargetDir
+    try {
+        git init --quiet
+        # If the remote already exists from a prior failed run, replace its URL.
+        $existingRemote = git remote 2>$null
+        if ($existingRemote -contains 'origin') {
+            git remote set-url origin $RepoUrl | Out-Null
+        } else {
+            git remote add origin $RepoUrl | Out-Null
+        }
+        git fetch --depth 1 origin $Ref | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "git fetch failed for $RepoUrl ($Ref)." }
+        git checkout -f -B $Ref FETCH_HEAD | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "git checkout failed for ref '$Ref'." }
+        Write-Host "Sample app initialized at '$Ref'." -ForegroundColor Green
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 # Sanity check: the project file we expect must be present.
