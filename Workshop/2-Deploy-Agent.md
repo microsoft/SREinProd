@@ -1,9 +1,11 @@
 # Module 2 - Deploy the Agent
 
 ## Objective
+
 Deploy a working Azure SRE Agent and attach it to the workshop demo workload.
 
 ## Prerequisites
+
 The workshop environment must already be deployed (`scripts/deploy-demo-env.ps1` or `azd up`). After that, `scripts/env.conf` should contain:
 
 ```text
@@ -15,23 +17,36 @@ LOG_ANALYTICS_WORKSPACE=log-sreinprod-demo-<suffix>
 ```
 
 ## Before you start the wizard
+
 Confirm three platform-level prerequisites. If any of these are missing the **Create** button in the portal will be disabled or the deployment will fail with `DeploymentNotFound`.
 
 1. **Register the `Microsoft.App` resource provider** on the subscription that will host the agent. SRE Agent runs on the Azure Container Apps control plane, so the provider must be registered before the wizard can deploy backing resources.
-   ```powershell
-   az provider register --namespace "Microsoft.App"
-   az provider show --namespace "Microsoft.App" --query "registrationState" -o tsv
-   ```
-   Wait until the state reads `Registered`.
+
+    ```powershell
+    az provider register --namespace "Microsoft.App"
+    az provider show --namespace "Microsoft.App" --query "registrationState" -o tsv
+    ```
+
+    Wait until the state reads `Registered`.
+
 2. **Verify your role**. You need `Owner` *or* `User Access Administrator` on the subscription. The wizard creates a system-assigned managed identity for the agent and then assigns RBAC roles on the monitored resource groups on your behalf — only those two roles can grant role assignments.
+
 3. **Allow outbound traffic to `*.azuresre.ai`**. The agent's hosted runtime calls back to that endpoint. If you're behind a corporate firewall, get it allow-listed before you continue, otherwise the chat UI will load but the agent will fail to respond.
 
 ## Lab steps
 
-### Step 1 — Create the agent resource group
-**What:** create an empty resource group that will hold *only* the agent and its automatically-provisioned dependencies (Application Insights, Log Analytics, Managed Identity).
+> The portal at `https://sre.azure.com` ships *two* flows you'll go through back-to-back:
+>
+> 1. A **3-pane Create-agent wizard** (`Basics → Review → Deploy`) that provisions the agent resource itself.
+> 2. A **"Set up your agent" page** that opens immediately after deployment with four data-source cards (`Code`, `Logs`, `Azure resources`, `Incidents`). Each card opens its own mini-wizard.
+>
+> The workshop covers steps for both flows, then adds two cards (`Azure resources` is required for Module 5; `Code` makes the agent dramatically smarter at root-causing app errors).
 
-**Why:** keeping the agent in its own RG (`rg-sreinprod-agent`) separates the *observer* from the *observed* (`rg-sreinprod-app`). It means you can delete or redeploy the demo workload without disturbing the agent, and the agent's own telemetry never gets mixed up with the workload's telemetry.
+### Step 1 — Create the agent resource group
+
+**What:** create an empty resource group that will hold *only* the agent and its automatically-provisioned dependencies (Managed Identity, Application Insights, Log Analytics workspace, the `Microsoft.App/SREAgents` resource itself).
+
+**Why:** keeping the agent in its own RG (`rg-sreinprod-agent`) separates the *observer* from the *observed* (`rg-sreinprod-app`). You can delete or redeploy the demo workload without disturbing the agent, and the agent's own telemetry never gets mixed up with the workload's telemetry.
 
 ```powershell
 az group create --name rg-sreinprod-agent --location eastus2
@@ -40,115 +55,216 @@ az group create --name rg-sreinprod-agent --location eastus2
 > The agent is only available in **Sweden Central**, **East US 2**, and **Australia East**. We use `eastus2` for the workshop. Pick the same region you used for `rg-sreinprod-app` to keep latency and data-residency simple.
 
 ### Step 2 — Open the SRE Agent portal and start the wizard
+
 1. Browse to <https://aka.ms/sreagent> (it redirects to `https://sre.azure.com`).
 2. Sign in with the same identity that owns the demo subscription.
-3. On the agent list page, select **+ Create agent** in the top toolbar.
+3. The **Agents** list page loads. If this is your first agent you'll see the empty-state card *"Create your first Azure SRE Agent"* with a primary **`Create agent`** button — click it. (Otherwise use the **`+ Create agent`** button on the top toolbar.)
 
-**What:** this launches a tree-pane wizard (**Basics → Review → Deploy**) that ultimately deploys an `Microsoft.App/SREAgents` resource plus its supporting Application Insights, Log Analytics workspace, and managed identity into the resource group you pick.
+**What:** this opens a 3-step dialog titled **Create agent** with header tabs **`1 Basics`** → **`2 Review`** → **`3 Deploy`**.
 
-**Why:** doing this in the portal (instead of `az` or Bicep) is intentional for the workshop — the wizard is the easiest way to see exactly which roles and dependencies the agent needs, and it leaves a clean Activity Log entry attendees can inspect afterwards.
+**Why portal (not CLI/Bicep) for the workshop:** the wizard is the easiest way to see exactly which roles and dependencies the agent needs, and it leaves a clean ARM deployment in `rg-sreinprod-agent → Deployments` you can inspect afterwards if you ever need to reproduce this with IaC.
 
 ### Step 3 — Fill in the **Basics** pane
-Use these exact values so later modules' screenshots and scripts line up:
+
+Use these exact values so later modules' screenshots and scripts line up.
+
+![Basics pane with Model provider radio group visible](../images/wizard/03-basics-filled.png)
 
 | Field | Value | Why this value |
-|---|---|---|
+| --- | --- | --- |
 | **Subscription** | Same subscription where you deployed Module 1 | The agent must live in the same tenant as the resources it monitors. |
-| **Resource group** | `rg-sreinprod-agent` | The empty RG you created in Step 1 — isolates the agent from the workload. |
-| **Agent name** | `sreagent-sreinprod` | Lowercase, hyphenated; must be unique within the RG. Used later in URLs and CLI commands. |
-| **Region** | `East US 2` | One of the three supported regions; matches the workload region. |
-| **Application Insights** | **Create new** (accept the default name) | The agent uses its *own* App Insights for self-telemetry — this is **not** the App Insights that monitors your web app. Creating a fresh one keeps the two telemetry streams isolated. |
+| **Resource group** | `rg-sreinprod-agent` | Pick **Select an existing resource group** → choose the RG you created in Step 1. |
+| **Agent name** *(required)* | `sreagent-sreinprod` | Lowercase, hyphenated; must be unique within the RG. Used later in URLs and CLI commands. |
+| **Region** *(required)* | `East US 2` | One of the three supported regions; matches the workload region. |
+| **Model provider** *(required)* | **Anthropic (3x) Preferred** *(default)* | Powers the agent's reasoning. `(3x)` / `(1x)` are billing-rate multipliers — Anthropic costs 3× per token vs Azure OpenAI. We use the default because it's tuned by Microsoft for SRE workflows. **Anthropic processes data in the United States and is excluded from European Union Data Boundary (EUDB)** — if your workshop is run in a tenant that requires EUDB, switch to **Azure OpenAI (1x)** here. |
+| **Application Insights** | **Create new** *(default)* | The agent uses its *own* App Insights for self-telemetry — this is **not** the App Insights that monitors your web app. Creating a fresh one keeps the two telemetry streams isolated. |
 
-Click **Next: Managed resources**.
+> ⚠️ **Model provider didn't appear at first** — the radio group only renders once a subscription is selected. If you don't see it, finish picking the Subscription and it will materialise.
 
-### Step 4 — Attach the workload on the **Managed resources** pane
-1. Click **+ Add managed resources**.
-2. In the picker, filter to the demo subscription and tick the box next to **`rg-sreinprod-app`**.
-3. Confirm the selection — only one RG should be listed.
-4. Click **Next: Permissions**.
+Click **Next**.
 
-**What:** "managed resources" tells the agent which slice of Azure it is allowed to look at. We attach the application RG (created by `infra/main.bicep`), which contains:
-- the App Service plan,
-- the web app + the `staging` slot,
-- the Log Analytics workspace + Application Insights instance that receive the app's telemetry,
-- the `Http5xx` metric alert that fires the incident in Module 5.
+### Step 4 — Confirm the **Review** pane
 
-**Why one RG (not the whole subscription):** the agent should only see resources relevant to this workload. This is a least-privilege boundary — if a teammate later spins up unrelated resources in another RG, the agent won't touch them. You can always widen the scope from **Settings → Managed resources** afterwards.
+The Review pane echoes back **only four fields**: Agent name, Region, Subscription, Resource group.
 
-### Step 5 — Choose the **Permissions** level
-Select **Reader (recommended)**. The wizard shows the exact RBAC roles it is about to assign to the agent's managed identity on `rg-sreinprod-app`:
-- **Reader** — see resources and configuration
-- **Log Analytics Reader** — query the workspace
-- **Monitoring Reader** — read metrics and alerts
-- (plus service-specific reader roles like *AKS Cluster User* for any services it detects)
+> 🔍 **Important:** the Review pane does **not** show your Model provider or Application Insights choice. If you're unsure, click **Back** and double-check the Basics pane *before* clicking Create — those values cannot be changed after deployment.
 
-Click **Next: Review + create**.
+Click **Create**.
 
-**What:** this is the *blast radius* control. `Reader` mode means the agent can investigate, summarise, and propose fixes, but **every write action requires your approval in chat** — perfect for Modules 3–5 where we want to *see* the agent reason about the failure before anything changes.
+### Step 5 — Watch the **Deploy** pane
 
-**Why not Privileged:** `Privileged` lets the agent execute approved runbooks automatically without an approval prompt. We deliberately keep that off for the workshop so attendees can watch the human-in-the-loop flow. You'll see in Module 4 how to selectively grant write permission for a single remediation (e.g. flipping `INJECT_ERROR` back to `0`) instead of escalating the whole agent.
+Deployment typically takes 2–4 minutes. While it runs, the dialog is modal (Close/Cancel are disabled) and the **Resource operations** list streams progress live. In a normal run you'll see seven operations succeed in this order:
 
-### Step 6 — Review and deploy
-1. Confirm the summary matches the table in Step 3 and that `rg-sreinprod-app` appears under monitored resources.
-2. Click **Create**.
-3. Deployment usually takes 2–4 minutes. The portal will show progress as it provisions:
-   - the SRE Agent resource,
-   - a managed identity,
-   - an Application Insights instance + Log Analytics workspace (for agent self-telemetry),
-   - the role assignments on `rg-sreinprod-app`.
-4. When the banner reads **Deployment succeeded**, click **Chat with agent**.
+| # | Resource | Type | What it is |
+| --- | --- | --- | --- |
+| 1 | `rg-sreinprod-agent-roleAssignments-…` | Nested deployment | Grants the agent's own managed identity the roles it needs on its sibling resources. |
+| 2 | `sreagent-sreinprod-<suffix>` | **Managed Identity** | User-assigned identity that the agent runs as. |
+| 3 | `workspace<suffix>` | **Log Analytics Workspace** | Stores the agent's *own* operational logs. |
+| 4 | `sreagent-sreinprod-<suffix>-app-insights` | **Application Insights** | Captures the agent's *own* traces/metrics. |
+| 5 | `sreagent-sreinprod` | **Azure SRE Agent** (`Microsoft.App/SREAgents`) | The agent resource itself. |
+| 6 | `UserRoleAssignment-…` | Nested deployment | Grants **you** (the creator) administrative access on the new agent so you can chat with it. |
+| 7 | *"Warming up your agent"* | **Agent Site** | Spins up the hosted chat backend at `*.azuresre.ai`. |
 
-**What / why:** the wizard is doing the same thing you would otherwise do with `az role assignment create` three times — it just batches everything into a single ARM deployment so you can see it succeed (or fail) atomically. If you ever need to reproduce this with IaC, inspect the deployment in `rg-sreinprod-agent → Deployments` to grab the generated template.
+When the banner flips from *"Deployment in progress…"* to ✅ **"Deployment succeeded"**, the **`Set up your agent`** button activates.
 
-### Step 7 — (Optional, for Module 5) Grant write access for the remediation step
-By default the agent is read-only. If you want it to actually flip `INJECT_ERROR` back to `0` during the Module 5 incident drill (instead of just *telling* you to do it), add one extra role assignment **scoped to the web app only**, not the whole RG:
+Click **`Set up your agent`**.
 
-```powershell
-# Replace <suffix> and <subId> with your values from scripts/env.conf and `az account show`
-$webAppId = az webapp show `
-  --resource-group rg-sreinprod-app `
-  --name app-sreinprod-demo-<suffix> `
-  --query id -o tsv
+### Step 6 — Land on **"Set up your agent"** and inspect the four data-source cards
 
-$agentMiId = az resource show `
-  --resource-group rg-sreinprod-agent `
-  --name sreagent-sreinprod `
-  --resource-type "Microsoft.App/SREAgents" `
-  --query "identity.principalId" -o tsv
+You're now on the agent's overview page (URL: `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`).
 
-az role assignment create `
-  --assignee-object-id $agentMiId `
-  --assignee-principal-type ServicePrincipal `
-  --role "Website Contributor" `
-  --scope $webAppId
-```
+![Set up your agent page with four data-source cards](../images/wizard/11-after-azure-resources-added.png)
 
-**What:** grants the agent's managed identity `Website Contributor` on **just the web app** (not the App Service plan, not the slot, not Application Insights).
+The banner says *"More context. Better investigations."* and lists four data sources:
 
-**Why narrow scope:** `Website Contributor` at RG scope would let the agent recreate or delete *any* site in the RG. Scoping to a single web app limits the agent's reach to settings, slots, and restarts on that one resource — which is exactly what Module 5 needs and nothing more.
+| Card | Why we connect it |
+| --- | --- |
+| **Code** *(Recommended, "Best with Logs")* | Lets the agent map exception stack traces back to the lines of code that produced them. Required for the *"why is this app throwing 500s?"* path in Module 5. |
+| **Logs** *(Recommended, "Best with code")* | Wires up external log providers (Datadog, Grafana, etc.). **The agent already queries your App Insights / Log Analytics through Azure RBAC** (Step 7), so this card is *only* needed if you also pipe telemetry to a non-Azure stack — skip it for the workshop. |
+| **Azure resources** | The new home of the old "Managed resources + Permissions" wizard panes. This is the **required** card for the workshop — it both attaches `rg-sreinprod-app` and assigns the RBAC roles. |
+| **Incidents** | Connects ServiceNow / PagerDuty / Azure Monitor Alerts as an incident source. Out of scope for Module 2; Module 4 covers wiring alerts. |
 
-### Step 8 — Smoke-test the connection
-In the agent chat pane, ask:
+We will connect **Azure resources** (required, Step 7) and **Code** (recommended, Step 8). You can leave the other two for now.
 
-```
+### Step 7 — Connect **Azure resources** (required)
+
+Click **`Add resources`** on the **Azure resources** card. The **Add Azure resources** dialog opens with its own two-step header (`1 Choose resource type → 2 Choose subscriptions`).
+
+**Sub-step 7a — Choose resource type.** Select **`Choose resource groups`** (least-privilege; the alternative `Choose subscriptions` would give the agent visibility into *every* RG in the sub). Click **Next**.
+
+**Sub-step 7b — Select resource groups.** The dialog header changes to **`Add resource groups`** with steps `1 Select resource groups → 2 View agent permissions`.
+
+> ℹ️ The dialog shows a banner: *"Only resources where you have the Owner or User Access Administrator role are listed. These roles are required to grant the agent access."* If `rg-sreinprod-app` isn't visible, the missing permission is *yours*, not the agent's.
+
+1. Narrow the **Subscription** filter to the one that holds `rg-sreinprod-app`.
+2. Use the search box if needed and **tick the box** next to `rg-sreinprod-app`.
+3. The counter should read **`1 selected`**. Click **Next**.
+
+**Sub-step 7c — View agent permissions.** This is where the old wizard's *Permissions* pane went. Pick a permission level — the role list on the page changes based on your choice:
+
+![Permission level: Privileged shows all seven roles the agent receives](../images/wizard/10b-permissions-privileged.png)
+
+| Permission level | Roles assigned on `rg-sreinprod-app` | Use it when… |
+| --- | --- | --- |
+| **Reader** *(default)* | `Reader`, `Monitoring Reader`, `Log Analytics Reader` (3 roles) | You want the agent to *propose* every action and have a human approve in chat. Safest. |
+| **Privileged** ⭐ recommended for this workshop | All Reader roles, plus `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor` (7 roles) | You want the agent to actually execute approved remediations end-to-end. Required for Module 5's *"flip `INJECT_ERROR` back to 0"* drill. |
+
+**Why Privileged for the workshop:** `Website Contributor` and `Web Plan Contributor` give the agent the ability to change app settings, swap slots, and restart the app — exactly the surface area Module 5 will exercise. The roles are scoped to the **single RG `rg-sreinprod-app`**, so the agent still can't touch anything in `rg-sreinprod-agent` or in unrelated RGs.
+
+**Why not narrow it further (e.g. only `Website Contributor` on the web app):** the portal's Privileged mode is RG-scoped and atomic — there's no in-UI knob to scope per resource. If your security review requires it, you can use **Reader** here and add a narrower role manually via `az role assignment create --scope <webAppId>` afterwards. For the demo, RG-scope is fine.
+
+The page shows the role table with status chips (**Already granted (0)** / **Needs assignment (7)**) and a confirmation strip: *"Required permissions will be granted automatically when you add resources."*
+
+Click **`Add resource group`** to commit. Back on the *Set up your agent* page the **Azure resources** card now reads **"1 resource group added"** with `Add more` and `Show details` actions.
+
+### Step 8 — Connect **Code** (recommended)
+
+Click **`Connect repositories`** on the **Code** card. The **Add repositories** dialog has three steps: `1 Choose a platform → 2 Authenticate → 3 Add repositories`.
+
+**Sub-step 8a — Choose a platform.**
+
+| Field | Value |
+| --- | --- |
+| **Platform** | **GitHub** (alternative: **Azure DevOps**) |
+| **GitHub host\*** | `github.com` (use `<tenant>.ghe.com` for GitHub Enterprise Cloud; GitHub Enterprise *Server* is not supported) |
+
+Click **Next**.
+
+**Sub-step 8b — Authenticate.** Choose a sign-in method:
+
+| Method | When to use it |
+| --- | --- |
+| **Your account** *(default)* | Easiest — OAuth grant flow, the agent reads repos as you. Pick this first. |
+| **PAT** | Fallback if OAuth fails or your tenant blocks OAuth apps. Use a fine-grained PAT with **read-only contents** on the one repo. |
+| **Bring your own GitHub App** | Production option for teams — survives the original creator leaving, and lets you scope per org. |
+
+Click **`Sign in to GitHub`** and complete the OAuth grant **in the same browser window**. When the panel updates to show **Connected as `<your-handle>`** ✅, click **Next**.
+
+> 🐞 **Known gotcha — "Invalid state / OAuth state rejected".** If the GitHub redirect comes back to a different browser session than the one that started it, you'll see `{"error":"Invalid state","message":"OAuth state rejected."}`. Cause: the OAuth popup opened (or was completed) in a *different* browser or profile than the SRE Agent tab — the anti-CSRF state cookie can't be matched. Fix: cancel the dialog, click **`Connect repositories`** again, and ensure the GitHub sign-in completes **in the same browser session**. If it still fails (corporate browser policies, third-party-cookie blockers, etc.), switch to **PAT** on the same Authenticate step — it bypasses the OAuth handshake entirely.
+
+**Sub-step 8c — Add repositories.** This is **not a list picker** — it's a manual URL grid. Click **`+ Add`** and fill in one row per repo:
+
+| Column | Value for this workshop |
+| --- | --- |
+| **Repository URL\*** | The HTTPS URL of *your fork* of the demo app (e.g. `https://github.com/<you>/app-service-dotnet-agent-tutorial`). Use the open-in-new-tab icon to verify the URL resolves. |
+| **Display name\*** | Defaults to the repo name — leave as `app-service-dotnet-agent-tutorial`. |
+| **Description** | `Sample .NET app` (free-form, surfaced in agent chat when it cites the repo). |
+
+> Add another row for your IaC repo (e.g. this `SREinProd` repo) if you want the agent to also understand `infra/main.bicep`. Not required for Module 2.
+
+Click **Save**. The **Code** card now reads **"1 repository"** ✅ and the status banner upgrades to *"SRE Agent can gain some insights into your apps."*
+
+### Step 9 — Smoke-test the agent
+
+Click **`Done and go to agent`** in the *Set up your agent* page footer (or use the breadcrumb to open the agent's chat view). In the chat pane, ask:
+
+```text
 What App Services do you see in rg-sreinprod-app, and which alert rules are configured on them?
 ```
 
 You should get back:
+
 - the demo web app (`app-sreinprod-demo-<suffix>`) and its `staging` slot,
 - the `Http5xx` metric alert defined in `infra/main.bicep`.
 
-**Why this prompt:** it exercises three of the agent's read paths in one shot — ARM resource enumeration, App Service slot awareness, and Azure Monitor alert rules. If any of them comes back empty, the agent doesn't have the role you think it does and you need to recheck Step 5 before continuing to Module 3.
+**Why this prompt:** it exercises three of the agent's Azure-RBAC paths in one shot — ARM resource enumeration, App Service slot awareness, and Azure Monitor alert rules. If any of them comes back empty, the agent's RBAC didn't propagate — recheck Step 7c before continuing to Module 3.
+
+Then optionally ask:
+
+```text
+What does the Program.cs in app-service-dotnet-agent-tutorial do?
+```
+
+A correct answer (mentions the controllers, the `INJECT_ERROR` feature flag, etc.) confirms the GitHub indexing from Step 8 is live.
 
 ## Validation checklist
+
 - [ ] `Microsoft.App` provider is `Registered` on the subscription.
-- [ ] Agent resource (`sreagent-sreinprod`) exists in `rg-sreinprod-agent`.
-- [ ] `rg-sreinprod-app` shows up under the agent's **Managed resources**.
-- [ ] The agent has a system-assigned managed identity (visible under **Settings → Basics**).
-- [ ] `Reader`, `Log Analytics Reader`, and `Monitoring Reader` role assignments exist on `rg-sreinprod-app` for that managed identity.
-- [ ] (Optional) `Website Contributor` is assigned **on the web app resource only** if you plan to demo automated remediation in Module 5.
+- [ ] Agent resource (`sreagent-sreinprod`) exists in `rg-sreinprod-agent`, along with a sibling managed identity, Log Analytics workspace, and Application Insights instance.
+- [ ] You can open the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
+- [ ] On the *Set up your agent* page the **Azure resources** card reads **"1 resource group added"** (= `rg-sreinprod-app`).
+- [ ] The agent's managed identity holds the **7 Privileged-mode roles** on `rg-sreinprod-app` (`Reader`, `Monitoring Reader`, `Log Analytics Reader`, `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor`). Verify with:
+
+    ```powershell
+    $miId = az resource show `
+      --resource-group rg-sreinprod-agent `
+      --name sreagent-sreinprod `
+      --resource-type "Microsoft.App/SREAgents" `
+      --query "identity.principalId" -o tsv
+    az role assignment list `
+      --assignee $miId `
+      --resource-group rg-sreinprod-app `
+      --query "[].roleDefinitionName" -o tsv
+    ```
+
+- [ ] The **Code** card reads **"1 repository"** (= your fork of `app-service-dotnet-agent-tutorial`).
 - [ ] The agent's smoke-test reply names the demo web app, its `staging` slot, and the `Http5xx` alert.
+- [ ] (Optional) The agent can also summarise `Program.cs` from the indexed repo.
+
+## Reference: full screenshot index
+
+The three screenshots embedded above capture the moments where the UI diverges most from older docs. The full set of wizard screens (captured against the live portal in June 2026) lives under `images/wizard/` for facilitators who want to build a slide deck:
+
+| # | Screen | File |
+| --- | --- | --- |
+| 1 | Agent list (empty state) | [01-after-signin.png](../images/wizard/01-after-signin.png) |
+| 2 | Create wizard — Basics (blank) | [02-wizard-pane-1.png](../images/wizard/02-wizard-pane-1.png) |
+| 3 | Create wizard — Basics (filled, Model provider visible) ⭐ embedded | [03-basics-filled.png](../images/wizard/03-basics-filled.png) |
+| 4 | Create wizard — Review | [04-review-pane.png](../images/wizard/04-review-pane.png) |
+| 5 | Create wizard — Deploy in progress | [05-deploy-pane.png](../images/wizard/05-deploy-pane.png) |
+| 6 | Create wizard — Deploy succeeded | [06-deploy-complete.png](../images/wizard/06-deploy-complete.png) |
+| 7 | Set up your agent (initial state) | [07-setup-your-agent.png](../images/wizard/07-setup-your-agent.png) |
+| 8 | Add Azure resources — choose type | [08-add-resources.png](../images/wizard/08-add-resources.png) |
+| 9 | Add resource groups — picker | [09-choose-subscriptions.png](../images/wizard/09-choose-subscriptions.png) |
+| 10 | View agent permissions — Reader (3 roles) | [10-view-agent-permissions.png](../images/wizard/10-view-agent-permissions.png) |
+| 10b | View agent permissions — Privileged (7 roles) ⭐ embedded | [10b-permissions-privileged.png](../images/wizard/10b-permissions-privileged.png) |
+| 11 | Set up your agent — Azure resources connected ⭐ embedded | [11-after-azure-resources-added.png](../images/wizard/11-after-azure-resources-added.png) |
+| 12 | Add repositories — Choose a platform | [12-connect-repositories.png](../images/wizard/12-connect-repositories.png) |
+| 13 | Add repositories — Authenticate | [13-github-authenticate.png](../images/wizard/13-github-authenticate.png) |
+| 14 | Add repositories — Authenticate (PAT validated) | [14-add-repositories.png](../images/wizard/14-add-repositories.png) |
+| 15 | Add repositories — URL grid | [15-add-repositories-picker.png](../images/wizard/15-add-repositories-picker.png) |
+| 16 | Set up your agent — Code + Azure resources connected | [16-after-code-added.png](../images/wizard/16-after-code-added.png) |
 
 ## Notes for repo owners
-Add screenshots and tenant-specific instructions here if you want a polished event-ready guide.
 
+Re-capture the wizard screens if the portal changes meaningfully (the agent wizard has been iterating quickly). Add tenant-specific instructions here if you want a polished event-ready guide.
