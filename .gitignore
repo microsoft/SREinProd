@@ -427,3 +427,41 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# === SREinProd-specific (re-added after merge from pierreroman/SREinProd) ===
+
+# Azure / azd
+.azure/
+*.azd/
+.env
+.env.*
+!scripts/env.template
+
+# VS Code workspace files (keep shared configs only)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Secrets / local
+*.pem
+secrets.*
+local.settings.json
+
+# Sample app: cloned on demand by scripts/clone-sample-app.ps1
+sample-app/*
+!sample-app/PLACEHOLDER.md
+
+# Local env overrides (copy of scripts/env.template)
+scripts/env.conf
+
+# Deploy artifacts produced by scripts/deploy-demo-env.ps1
+.artifacts/
+
+# Playwright MCP debug artifacts (local snapshots used to author docs)
+.playwright-mcp/
