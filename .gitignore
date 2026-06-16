@@ -58,3 +58,6 @@ scripts/env.conf
 
 # Deploy artifacts produced by scripts/deploy-demo-env.ps1
 .artifacts/
+
+# Playwright MCP debug artifacts (local snapshots used to author docs)
+.playwright-mcp/
