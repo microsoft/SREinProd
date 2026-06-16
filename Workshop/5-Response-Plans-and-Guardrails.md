@@ -117,7 +117,7 @@ Click **`Incident Response Plans`** in the left rail again. The empty state is g
 
 Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a persistent status pill. The toolbar buttons that were disabled in Step 1 are now live: **`+ New incident response plan`** and selecting a row enables **`Delete`** and **`Turn off`**.
 
-> 🔬 **Sev3, why?** The Quickstart toggle hardcodes Sev3. Sev3 in Azure Monitor is "warning" - not a paging event. The product team picked it as the workshop-safe default so a Quickstart plan cannot accidentally action a Sev0/Sev1 outage. To change it, click the plan and edit the **`Severity`** field on the wizard's Step 1.
+> 🔬 **Sev3, why?** The Quickstart toggle hardcodes Sev3. Sev3 in Azure Monitor is "warning" - not a paging event. We picked it as the workshop-safe default so a Quickstart plan cannot accidentally action a Sev0/Sev1 outage. To change it, click the plan and edit the **`Severity`** field on the wizard's Step 1.
 
 ### Step 4: Convert the Quickstart plan to a custom plan
 
@@ -144,7 +144,7 @@ Visible on Step 1:
 | Helper | *"With a custom incident response plan, the agent will learn how to handle this type of incident using similar past incidents and your instructions."* |
 | **`☐ I want a custom response plan.`** | unchecked |
 
-Tick the **`I want a custom response plan.`** checkbox. The step list rebuilds into **4 steps**:
+Check the **`I want a custom response plan.`** checkbox. The step list rebuilds into **4 steps**:
 
 ![Custom plan checkbox checked, wizard now has 4 steps](../images/wizard/46-custom-plan-fields.png)
 
