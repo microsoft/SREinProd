@@ -31,7 +31,7 @@ Use this slide to anchor every later module. Most teams already do layer 1; the 
 Walk through these as a mini-diagnostic of the room. Most teams will recognize at least three of the four.
 
 1. **Signal sprawl.** Telemetry is split across Application Insights, App Service logs, Activity Log, alert rules, and the deployment pipeline. Each lives in its own pane of glass and uses its own query language.
-2. **Cross-layer RCA is slow.** A spike of HTTP 500s could be code, configuration, infra, or upstream dependency. Correlating "an app setting changed at 14:02" with "5xx started at 14:03" is currently a human's pattern-matching job.
+2. **Cross-layer root cause analysis is slow.** A spike of HTTP 500s could be code, configuration, infra, or upstream dependency. Correlating "an app setting changed at 14:02" with "5xx started at 14:03" is currently a human's pattern-matching job.
 3. **Context is trapped.** The engineer who last debugged this exact failure mode in March is on PTO. The post-mortem doc is in a wiki nobody opened since.
 4. **Action is gated by access.** Even when the fix is obvious, the on-call may not have the role to flip the app setting and is paging someone who does.
 
@@ -111,9 +111,9 @@ This is the catalog of "places the agent can pull context from", useful when par
 
 Use these as the framing for the room before going any further. The workshop's value-per-minute is highest when participants come to Module 5 having already articulated the gap between *dashboards* and *operating systems*.
 
-- **Why incidents take too long to resolve.** Where does *your* MTTR actually go: detection, triage, RCA, fix, or comms?
+- **Why incidents take too long to resolve.** Where does *your* MTTR actually go: detection, triage, root cause analysis, fix, or comms?
 - **Why dashboards alone are not enough.** A dashboard tells you *something* is wrong; what tells you *why*?
-- **Why cross-layer RCA is slow.** When a 5xx fires, how many panes of glass does your on-call open?
+- **Why cross-layer root cause analysis is slow.** When a 5xx fires, how many panes of glass does your on-call open?
 - **Why context and guardrails matter.** What stops you from just letting an LLM `az webapp restart` everything? (Answer that becomes Module 4.)
 
 ## Facilitator prompts
