@@ -1,5 +1,7 @@
 # Module 1 - Foundation
 
+[← Workshop home](./ReadMe.md) | [Next: Module 2 →](./2-Deploy-Agent.md)
+
 ## Objective
 
 Reset expectations before anyone touches a portal: this workshop is about **operating systems in production**, not just chatting with an agent. By the end of this module participants should be able to explain, in their own words, what Azure SRE Agent is, what problem it solves, and where it sits in their existing tooling.

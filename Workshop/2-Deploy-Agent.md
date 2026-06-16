@@ -1,5 +1,7 @@
 # Module 2 - Deploy the Agent
 
+[← Module 1: Foundation](./1-Foundation.md) | [Workshop home](./ReadMe.md) | [Next: Module 3 →](./3-Connect-Observability.md)
+
 ## Objective
 
 Deploy a working Azure SRE Agent and attach it to the workshop demo workload.

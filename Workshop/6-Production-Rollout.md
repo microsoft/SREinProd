@@ -1,5 +1,7 @@
 # Module 6 - Production Rollout
 
+[← Module 5: Incident Drill](./5-Incident-Drill.md) | [Workshop home](./ReadMe.md) | [Next: Bonus →](./Bonus.md)
+
 ## Objective
 Help participants leave with a realistic adoption strategy.
 

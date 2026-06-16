@@ -1,5 +1,7 @@
 # Module 4 - Response Plans and Guardrails
 
+[← Module 3: Connect Observability](./3-Connect-Observability.md) | [Workshop home](./ReadMe.md) | [Next: Module 5 →](./5-Incident-Drill.md)
+
 ## Objective
 Define how the agent should respond when it encounters a real issue.
 

@@ -1,5 +1,7 @@
 # Module 5 - Incident Drill
 
+[← Module 4: Response Plans and Guardrails](./4-Response-Plans-and-Guardrails.md) | [Workshop home](./ReadMe.md) | [Next: Module 6 →](./6-Production-Rollout.md)
+
 ## Objective
 Run a realistic incident on the demo workload and let the agent investigate and propose remediation.
 

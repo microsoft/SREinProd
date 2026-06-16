@@ -1,5 +1,7 @@
 # Bonus Module
 
+[← Module 6: Production Rollout](./6-Production-Rollout.md) | [Workshop home →](./ReadMe.md)
+
 ## Optional advanced topics
 - custom runbooks
 - subagents

@@ -1,5 +1,7 @@
 # Module 3 - Connect Observability
 
+[← Module 2: Deploy the Agent](./2-Deploy-Agent.md) | [Workshop home](./ReadMe.md) | [Next: Module 4 →](./4-Response-Plans-and-Guardrails.md)
+
 ## Objective
 Connect the agent to the signal sources it needs to investigate incidents on the demo workload.
 
