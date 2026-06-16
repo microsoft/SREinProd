@@ -61,7 +61,7 @@ azd up
 
 Full details in [`AZD-SETUP.md`](./AZD-SETUP.md). Note the [two known sharp edges](./AZD-SETUP.md#known-issues-with-the-azd-path) on slot-enabled App Service apps (init-time project validation and a slot-deploy hang).
 
-Both paths produce the same environment: a healthy production slot, a faulty staging slot, Application Insights wired up, and an Http5xx alert ready for Azure SRE Agent to investigate during [Module 5](./Workshop/5-Incident-Drill.md).
+Both paths produce the same environment: a healthy production slot, a faulty staging slot, Application Insights wired up, and an Http5xx alert ready for Azure SRE Agent to investigate during [Module 6](./Workshop/6-Incident-Drill.md).
 
 ## Repo layout
 
@@ -86,10 +86,11 @@ SREinProd/
 │   ├── ReadMe.md
 │   ├── 1-Foundation.md
 │   ├── 2-Deploy-Agent.md
-│   ├── 3-Connect-Observability.md
-│   ├── 4-Response-Plans-and-Guardrails.md
-│   ├── 5-Incident-Drill.md
-│   ├── 6-Production-Rollout.md
+│   ├── 3-Connectors.md
+│   ├── 4-Connect-Observability.md
+│   ├── 5-Response-Plans-and-Guardrails.md
+│   ├── 6-Incident-Drill.md
+│   ├── 7-Production-Rollout.md
 │   └── Bonus.md
 ├── infra/
 │   ├── README.md

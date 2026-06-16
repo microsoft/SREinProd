@@ -1,6 +1,6 @@
-# Module 6 - Production Rollout
+# Module 7 - Production Rollout
 
-[← Module 5: Incident Drill](./5-Incident-Drill.md) | [Workshop home](./ReadMe.md) | [Next: Bonus →](./Bonus.md)
+[← Module 6: Incident Drill](./6-Incident-Drill.md) | [Workshop home](./ReadMe.md) | [Next: Bonus →](./Bonus.md)
 
 ## Objective
 

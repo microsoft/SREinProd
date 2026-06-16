@@ -22,7 +22,7 @@ Sample workload: [`Azure-Samples/app-service-dotnet-agent-tutorial`](https://git
 
 The Bicep template seeds the slot configuration so the **production slot is
 healthy** and the **staging slot has `INJECT_ERROR=1`** (slot-sticky), ready
-for Module 5.
+for Module 6.
 
 ## Prerequisites
 
@@ -62,7 +62,7 @@ When `azd up` finishes you will have:
 
 - **Production URL** - healthy; suitable for the baseline traffic generator.
 - **Staging URL** - configured with `INJECT_ERROR=1`; the 6th `?crash=1` request per session throws.
-- **Application Insights** - already wired; SRE Agent will pick this up in Module 3.
+- **Application Insights** - already wired; SRE Agent will pick this up in Module 4.
 - **Http5xx metric alert** - fires on >=5 failures in 5 minutes; the signal SRE Agent investigates.
 
 The deployment outputs (web app name, URLs, AI/LA names) are also mirrored

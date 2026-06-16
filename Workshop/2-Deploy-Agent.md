@@ -1,6 +1,6 @@
 # Module 2 - Deploy the Agent
 
-[← Module 1: Foundation](./1-Foundation.md) | [Workshop home](./ReadMe.md) | [Next: Module 3 →](./3-Connect-Observability.md)
+[← Module 1: Foundation](./1-Foundation.md) | [Workshop home](./ReadMe.md) | [Next: Module 3 →](./3-Connectors.md)
 
 ## Objective
 
@@ -42,7 +42,7 @@ Confirm three platform-level prerequisites. If any of these are missing the **Cr
 > 1. A **3-pane Create-agent wizard** (`Basics`, `Review`, `Deploy`) that provisions the agent resource itself.
 > 2. A **"Set up your agent" page** that opens immediately after deployment with four data-source cards (`Code`, `Logs`, `Azure resources`, `Incidents`). Each card opens its own mini-wizard.
 >
-> The workshop covers steps for both flows, then adds two cards (`Azure resources` is required for Module 5; `Code` makes the agent dramatically smarter at root-causing app errors).
+> The workshop covers steps for both flows, then adds two cards (`Azure resources` is required for Module 6; `Code` makes the agent dramatically smarter at root-causing app errors).
 
 ### Step 1: Create the agent resource group
 
@@ -121,10 +121,10 @@ The banner says *"More context. Better investigations."* and lists four data sou
 
 | Card | Why we connect it |
 | --- | --- |
-| **Code** *(Recommended, "Best with Logs")* | Lets the agent map exception stack traces back to the lines of code that produced them. Required for the *"why is this app throwing 500s?"* path in Module 5. |
+| **Code** *(Recommended, "Best with Logs")* | Lets the agent map exception stack traces back to the lines of code that produced them. Required for the *"why is this app throwing 500s?"* path in Module 6. |
 | **Logs** *(Recommended, "Best with code")* | Wires up external log providers (Datadog, Grafana, etc.). **The agent already queries your App Insights / Log Analytics through Azure RBAC** (Step 7), so this card is *only* needed if you also pipe telemetry to a non-Azure stack. Skip it for the workshop. |
 | **Azure resources** | The new home of the old "Managed resources + Permissions" wizard panes. This is the **required** card for the workshop: it both attaches `rg-sreinprod-app` and assigns the RBAC roles. |
-| **Incidents** | Connects ServiceNow / PagerDuty / Azure Monitor Alerts as an incident source. Out of scope for Module 2; Module 4 covers wiring alerts. |
+| **Incidents** | Connects ServiceNow / PagerDuty / Azure Monitor Alerts as an incident source. Out of scope for Module 2; Module 5 covers wiring alerts. |
 
 We will connect **Azure resources** (required, Step 7) and **Code** (recommended, Step 8). You can leave the other two for now.
 
@@ -149,9 +149,9 @@ Click **`Add resources`** on the **Azure resources** card. The **Add Azure resou
 | Permission level | Roles assigned on `rg-sreinprod-app` | Use it when… |
 | --- | --- | --- |
 | **Reader** *(default)* | `Reader`, `Monitoring Reader`, `Log Analytics Reader` (3 roles) | You want the agent to *propose* every action and have a human approve in chat. Safest. |
-| **Privileged** ⭐ recommended for this workshop | All Reader roles, plus `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor` (7 roles) | You want the agent to actually execute approved remediations end-to-end. Required for Module 5's *"flip `INJECT_ERROR` back to 0"* drill. |
+| **Privileged** ⭐ recommended for this workshop | All Reader roles, plus `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor` (7 roles) | You want the agent to actually execute approved remediations end-to-end. Required for Module 6's *"flip `INJECT_ERROR` back to 0"* drill. |
 
-**Why Privileged for the workshop:** `Website Contributor` and `Web Plan Contributor` give the agent the ability to change app settings, swap slots, and restart the app, which is exactly the surface area Module 5 will exercise. The roles are scoped to the **single RG `rg-sreinprod-app`**, so the agent still can't touch anything in `rg-sreinprod-agent` or in unrelated RGs.
+**Why Privileged for the workshop:** `Website Contributor` and `Web Plan Contributor` give the agent the ability to change app settings, swap slots, and restart the app, which is exactly the surface area Module 6 will exercise. The roles are scoped to the **single RG `rg-sreinprod-app`**, so the agent still can't touch anything in `rg-sreinprod-agent` or in unrelated RGs.
 
 **Why not narrow it further (e.g. only `Website Contributor` on the web app):** the portal's Privileged mode is RG-scoped and atomic. There's no in-UI knob to scope per resource. If your security review requires it, you can use **Reader** here and add a narrower role manually via `az role assignment create --scope <webAppId>` afterwards. For the demo, RG-scope is fine.
 
@@ -209,7 +209,7 @@ You should get back:
 - the demo web app (`app-sreinprod-demo-<suffix>`) and its `staging` slot,
 - the `Http5xx` metric alert defined in `infra/main.bicep`.
 
-**Why this prompt:** it exercises three of the agent's Azure-RBAC paths in one shot: ARM resource enumeration, App Service slot awareness, and Azure Monitor alert rules. If any of them comes back empty, the agent's RBAC didn't propagate. Recheck Step 7c before continuing to Module 3.
+**Why this prompt:** it exercises three of the agent's Azure-RBAC paths in one shot: ARM resource enumeration, App Service slot awareness, and Azure Monitor alert rules. If any of them comes back empty, the agent's RBAC didn't propagate. Recheck Step 7c before continuing to Module 4.
 
 Then optionally ask:
 

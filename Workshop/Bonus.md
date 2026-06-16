@@ -1,6 +1,6 @@
 # Bonus Module
 
-[← Module 6: Production Rollout](./6-Production-Rollout.md) | [Workshop home →](./ReadMe.md)
+[← Module 7: Production Rollout](./7-Production-Rollout.md) | [Workshop home →](./ReadMe.md)
 
 ## Optional advanced topics
 

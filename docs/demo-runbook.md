@@ -22,8 +22,8 @@ the .NET 9 sample app deployed by `infra/main.bicep` (see
 - [ ] `scripts/env.conf` exists and contains the deployment outputs.
 - [ ] `pwsh ./scripts/smoke-test.ps1` returns 200 on both slots.
 - [ ] Azure SRE Agent is created (Module 2) and attached to `APP_RESOURCE_GROUP`.
-- [ ] Application Insights connection is healthy (Module 3).
-- [ ] Response plan from Module 4 is saved and in review mode.
+- [ ] Application Insights connection is healthy (Module 4).
+- [ ] Response plan from Module 5 is saved and in review mode.
 - [ ] Workshop chat / portal tab is open on the SRE Agent.
 
 ## Drill steps

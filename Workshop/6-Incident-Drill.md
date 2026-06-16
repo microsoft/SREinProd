@@ -1,6 +1,6 @@
-# Module 5 - Incident Drill
+# Module 6 - Incident Drill
 
-[← Module 4: Response Plans and Guardrails](./4-Response-Plans-and-Guardrails.md) | [Workshop home](./ReadMe.md) | [Next: Module 6 →](./6-Production-Rollout.md)
+[← Module 5: Response Plans and Guardrails](./5-Response-Plans-and-Guardrails.md) | [Workshop home](./ReadMe.md) | [Next: Module 7 →](./7-Production-Rollout.md)
 
 ## Objective
 

@@ -1,6 +1,6 @@
-# Module 4 - Response Plans and Guardrails
+# Module 5 - Response Plans and Guardrails
 
-[← Module 3: Connect Observability](./3-Connect-Observability.md) | [Workshop home](./ReadMe.md) | [Next: Module 5 →](./5-Incident-Drill.md)
+[← Module 4: Connect Observability](./4-Connect-Observability.md) | [Workshop home](./ReadMe.md) | [Next: Module 6 →](./6-Incident-Drill.md)
 
 ## Objective
 

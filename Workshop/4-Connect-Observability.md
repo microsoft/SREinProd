@@ -1,6 +1,6 @@
-# Module 3 - Connect Observability
+# Module 4 - Connect Observability
 
-[← Module 2: Deploy the Agent](./2-Deploy-Agent.md) | [Workshop home](./ReadMe.md) | [Next: Module 4 →](./4-Response-Plans-and-Guardrails.md)
+[← Module 3: Connectors](./3-Connectors.md) | [Workshop home](./ReadMe.md) | [Next: Module 5 →](./5-Response-Plans-and-Guardrails.md)
 
 ## Objective
 

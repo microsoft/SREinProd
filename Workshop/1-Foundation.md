@@ -22,8 +22,8 @@ Use this slide to anchor every later module. Most teams already do layer 1; the 
 | # | Layer | Question it answers | Where it usually lives today | Where it lives in this workshop |
 | --- | --- | --- | --- | --- |
 | 1 | **Monitoring** | *Is something wrong?* | Dashboards, metric alerts | Http5xx alert in [`infra/main.bicep`](../infra/main.bicep) |
-| 2 | **Investigation** | *What is wrong, and why?* | Tribal knowledge + 6 browser tabs | SRE Agent chat ([Module 5](./5-Incident-Drill.md)) |
-| 3 | **Remediation** | *How do we make it stop?* | Runbooks, on-call ad-hoc CLI | Agent guardrails + RBAC ([Module 4](./4-Response-Plans-and-Guardrails.md)) |
+| 2 | **Investigation** | *What is wrong, and why?* | Tribal knowledge + 6 browser tabs | SRE Agent chat ([Module 6](./6-Incident-Drill.md)) |
+| 3 | **Remediation** | *How do we make it stop?* | Runbooks, on-call ad-hoc CLI | Agent guardrails + RBAC ([Module 5](./5-Response-Plans-and-Guardrails.md)) |
 | 4 | **Institutional learning** | *How do we not see this again?* | Post-mortem docs nobody re-reads | Agent memory ([Bonus](./Bonus.md)) |
 
 > **The workshop's central claim:** dashboards are necessary but not sufficient. They tell you *that* something is wrong; they don't tell you *what changed* across resource configuration, code, deployments, and alerts at the same time. SRE Agent's differentiator is correlating those signals **and** remembering what worked last time.
@@ -50,7 +50,7 @@ SRE Agent attacks each of these directly: it queries every observability surface
 | Governed by Azure identity & policy | N/A | N/A | **Managed identity + role assignments + audit log** |
 | Extensible | Custom dashboards | Custom prompts | **Custom runbooks, sub-agents, MCP servers** |
 
-The "can take action, but only when permitted" row is the one that matters for production use, and it's the one that drives the workshop's emphasis on guardrails in Module 4.
+The "can take action, but only when permitted" row is the one that matters for production use, and it's the one that drives the workshop's emphasis on guardrails in Module 5.
 
 ## How the agent actually works (under the hood)
 
@@ -82,7 +82,7 @@ Three things to call out from this diagram:
 
 - The **agent is an Azure resource**, not a SaaS endpoint. Creating one auto-provisions a Managed Identity, an Application Insights instance, and a Log Analytics workspace for the agent's own telemetry. You'll see those appear during [Module 2](./2-Deploy-Agent.md).
 - It only sees what **you grant it** via Azure RBAC. The workshop uses RG-scoped Privileged-mode permissions on `rg-sreinprod-app`, which is the *least-privilege* path that still lets the agent execute approved remediations.
-- The **memory** belongs to the agent resource. Delete the agent and the memory goes with it; that's why production rollout (Module 6) treats the agent as a long-lived first-class resource, not a sandbox.
+- The **memory** belongs to the agent resource. Delete the agent and the memory goes with it; that's why production rollout (Module 7) treats the agent as a long-lived first-class resource, not a sandbox.
 
 ## The supported integration surface (today)
 
@@ -96,27 +96,28 @@ This is the catalog of "places the agent can pull context from", useful when par
 | **Data sources** | Azure Data Explorer (Kusto) clusters, Model Context Protocol (MCP) servers |
 | **Azure service management** | Compute (VMs, App Service, ACA, AKS, Functions), Storage, Networking, SQL/Cosmos/PostgreSQL/MySQL/Redis, Azure Monitor / Resource Manager, all managed via Azure CLI and REST APIs |
 
-> Anything not in this table is reachable via **custom runbooks** (any az CLI / REST call) or **sub-agents / MCP** for non-Azure systems. Module 6 covers when to reach beyond this list.
+> Anything not in this table is reachable via **custom runbooks** (any az CLI / REST call) or **sub-agents / MCP** for non-Azure systems. Module 7 covers when to reach beyond this list.
 
 ## Where each capability shows up in this workshop
 
 | Capability | Demonstrated in |
 | --- | --- |
 | Provisioning the agent + RBAC scoping | [Module 2: Deploy the Agent](./2-Deploy-Agent.md) |
-| Connecting telemetry sources & code | [Module 3: Connect Observability](./3-Connect-Observability.md) |
-| Approval-gated remediation, response plans, guardrails | [Module 4: Response Plans and Guardrails](./4-Response-Plans-and-Guardrails.md) |
-| End-to-end investigation against a real fault | [Module 5: Incident Drill](./5-Incident-Drill.md) |
-| Multi-environment rollout, custom runbooks, sub-agents | [Module 6: Production Rollout](./6-Production-Rollout.md) |
+| Adding connectors for incident automation | [Module 3: Connectors](./3-Connectors.md) |
+| Connecting telemetry sources & code | [Module 4: Connect Observability](./4-Connect-Observability.md) |
+| Approval-gated remediation, response plans, guardrails | [Module 5: Response Plans and Guardrails](./5-Response-Plans-and-Guardrails.md) |
+| End-to-end investigation against a real fault | [Module 6: Incident Drill](./6-Incident-Drill.md) |
+| Multi-environment rollout, custom runbooks, sub-agents | [Module 7: Production Rollout](./7-Production-Rollout.md) |
 | Memory, scheduled tasks, MCP extensibility | [Bonus](./Bonus.md) |
 
 ## Key discussion points
 
-Use these as the framing for the room before going any further. The workshop's value-per-minute is highest when participants come to Module 5 having already articulated the gap between *dashboards* and *operating systems*.
+Use these as the framing for the room before going any further. The workshop's value-per-minute is highest when participants come to Module 6 having already articulated the gap between *dashboards* and *operating systems*.
 
 - **Why incidents take too long to resolve.** Where does *your* MTTR actually go: detection, triage, root cause analysis, fix, or comms?
 - **Why dashboards alone are not enough.** A dashboard tells you *something* is wrong; what tells you *why*?
 - **Why cross-layer root cause analysis is slow.** When a 5xx fires, how many panes of glass does your on-call open?
-- **Why context and guardrails matter.** What stops you from just letting an LLM `az webapp restart` everything? (Answer that becomes Module 4.)
+- **Why context and guardrails matter.** What stops you from just letting an LLM `az webapp restart` everything? (Answer that becomes Module 5.)
 
 ## Facilitator prompts
 
@@ -125,7 +126,7 @@ Open-ended versions of the discussion points above. Pick 2 to 3 based on the roo
 - *"What slows your team down during incidents today?"* This usually surfaces tooling sprawl and access bottlenecks.
 - *"Which tools do you switch between most often during an investigation?"* This maps directly to the Integrations table above.
 - *"What knowledge is usually trapped in past incidents?"* This leads into the memory discussion.
-- *"What's the smallest action you'd be willing to let an agent take unattended?"* This primes Module 4's guardrail conversation.
+- *"What's the smallest action you'd be willing to let an agent take unattended?"* This primes Module 5's guardrail conversation.
 - *"If your best on-call engineer left tomorrow, what would you lose?"* This primes the *Knowledge that never leaves* slide for [Bonus](./Bonus.md).
 
 ## What the agent will *not* do (managing expectations)
@@ -155,4 +156,4 @@ If the room can articulate that distinction in their own words, you're ready for
 - [Memory and knowledge](https://learn.microsoft.com/azure/sre-agent/memory): how the agent persists what it learns.
 - [Sub-agents](https://learn.microsoft.com/azure/sre-agent/sub-agents): extending the agent to specialized domains.
 - [`docs/architecture.md`](../docs/architecture.md): how this specific workshop's demo environment is wired.
-- [`docs/sample-app.md`](../docs/sample-app.md): the .NET sample app and the deterministic `INJECT_ERROR` fault used in Module 5.
+- [`docs/sample-app.md`](../docs/sample-app.md): the .NET sample app and the deterministic `INJECT_ERROR` fault used in Module 6.

@@ -26,8 +26,8 @@ When the script finishes you have:
 
 - **Production URL** - healthy; suitable for the baseline traffic generator.
 - **Staging URL** - configured with `INJECT_ERROR=1`; the 6th `?crash=1` request per session throws.
-- **Application Insights** - already wired; SRE Agent picks this up in Module 3.
-- **Http5xx metric alert** - fires on >=5 failures in 5 minutes; the signal SRE Agent investigates in Module 5.
+- **Application Insights** - already wired; SRE Agent picks this up in Module 4.
+- **Http5xx metric alert** - fires on >=5 failures in 5 minutes; the signal SRE Agent investigates in Module 6.
 
 ## Prerequisites
 
@@ -109,8 +109,8 @@ pwsh .\scripts\smoke-test.ps1
 | `scripts/deploy-demo-env.ps1` | End-to-end build of the workshop environment. | Setup |
 | `scripts/deploy-to-slot.ps1` | `dotnet publish` + zip + `az webapp deploy` for a named slot. | Setup, azd postdeploy hook |
 | `scripts/smoke-test.ps1` | Verifies production and staging slots respond. | Setup, between runs |
-| `scripts/demo-warmup.ps1` | Baseline traffic + flips `INJECT_ERROR=1` + drives `?crash=1` traffic. | Workshop Module 5 |
-| `scripts/demo-rollback.ps1` | Restores `INJECT_ERROR=0` on production and re-asserts `INJECT_ERROR=1` on staging. | Workshop Module 5 / between runs |
+| `scripts/demo-warmup.ps1` | Baseline traffic + flips `INJECT_ERROR=1` + drives `?crash=1` traffic. | Workshop Module 6 |
+| `scripts/demo-rollback.ps1` | Restores `INJECT_ERROR=0` on production and re-asserts `INJECT_ERROR=1` on staging. | Workshop Module 6 / between runs |
 
 ## Tearing it down
 

@@ -93,7 +93,7 @@ pwsh ./scripts/deploy-demo-env.ps1 -SubscriptionId <id>
 - The Http5xx metric alert requires >=5 failures in 5 minutes; if you only generated a few, raise the volume.
 
 ### Remediation suggestion is incomplete
-- Confirm the response plan from Module 4 is attached.
+- Confirm the response plan from Module 5 is attached.
 - Check that App Insights, Log Analytics, and (optionally) the code repo are all connected.
 - Re-prompt the agent for a step-by-step remediation plan referencing the most recent change.
 

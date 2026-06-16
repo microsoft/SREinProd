@@ -50,7 +50,7 @@ every surface Azure SRE Agent depends on. The target workload is
   settings (HTTP, app, console, platform logs + metrics).
 - **Http5xx metric alert** - fires when the production slot emits >=5
   HTTP 5xx responses in 5 minutes. This is the signal SRE Agent picks up
-  during Module 5.
+  during Module 6.
 - **Azure SRE Agent** (created in Module 2) - attaches to the application
   resource group and uses the resources above as its evidence sources.
 - **Optional integrations** - GitHub or Azure DevOps repository (for

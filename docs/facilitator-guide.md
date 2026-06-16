@@ -19,5 +19,5 @@ The lab uses [`Azure-Samples/app-service-dotnet-agent-tutorial`](https://github.
 - [ ] `pwsh ./scripts/deploy-demo-env.ps1` (or `azd up`) ran cleanly within the last 24 hours.
 - [ ] `pwsh ./scripts/smoke-test.ps1` returns 200 on both slots.
 - [ ] Azure SRE Agent is created and attached to `APP_RESOURCE_GROUP`.
-- [ ] You have run the full Module 5 drill end-to-end at least once, including `demo-rollback.ps1`.
+- [ ] You have run the full Module 6 drill end-to-end at least once, including `demo-rollback.ps1`.
 
