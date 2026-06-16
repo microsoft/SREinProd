@@ -69,4 +69,3 @@ pwsh ./scripts/demo-rollback.ps1
 
 This sets `INJECT_ERROR=0` on production, re-asserts `INJECT_ERROR=1` on
 staging, and runs the smoke test.
-

@@ -61,7 +61,7 @@ See [What the PowerShell deploy does in this repo](#what-the-powershell-deploy-d
 ### Useful parameters
 
 | Parameter | Effect |
-|---|---|
+| --- | --- |
 | `-SubscriptionId <id-or-name>` | Skip the subscription prompt. |
 | `-ResourceGroup <name>` | Skip the resource group prompt. |
 | `-Location <region>` | Skip the region prompt. |
@@ -104,7 +104,7 @@ pwsh .\scripts\smoke-test.ps1
 ## Script reference
 
 | Script | Purpose | Used in |
-|---|---|---|
+| --- | --- | --- |
 | `scripts/clone-sample-app.ps1` | Idempotently clones the upstream sample into `./sample-app/`. | Setup, azd preprovision hook |
 | `scripts/deploy-demo-env.ps1` | End-to-end build of the workshop environment. | Setup |
 | `scripts/deploy-to-slot.ps1` | `dotnet publish` + zip + `az webapp deploy` for a named slot. | Setup, azd postdeploy hook |
@@ -117,4 +117,3 @@ pwsh .\scripts\smoke-test.ps1
 ```powershell
 az group delete --name rg-sreinprod-app --yes --no-wait
 ```
-

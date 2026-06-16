@@ -60,6 +60,7 @@ every surface Azure SRE Agent depends on. The target workload is
 
 Participants should understand that SRE Agent is not just a chat surface.
 It becomes useful when it has:
+
 1. telemetry,
 2. operating context,
 3. response plans,
@@ -68,4 +69,3 @@ It becomes useful when it has:
 The sample workload was chosen because it offers all four with the
 smallest possible footprint: one app, one slot, one app setting,
 one alert.
-

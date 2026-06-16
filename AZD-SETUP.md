@@ -90,4 +90,3 @@ azd down --purge
 
 `--purge` also removes the Application Insights and Log Analytics resources
 so re-running the workshop starts from a clean slate.
-

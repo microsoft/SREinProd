@@ -3,6 +3,7 @@
 A half-day workshop on deploying and using Azure SRE Agent in production.
 
 This scaffold is intentionally modeled after the structure used in the `microsoft/AIforITOps` repository:
+
 - a top-level README
 - deployment/setup guides
 - a `Workshop/` folder with numbered exercises
@@ -20,12 +21,14 @@ The lab uses [`Azure-Samples/app-service-dotnet-agent-tutorial`](https://github.
 The sample is cloned on demand into `./sample-app/` by [`scripts/clone-sample-app.ps1`](./scripts/clone-sample-app.ps1) (gitignored). The supporting infrastructure - App Service plan, web app, staging slot, Log Analytics, Application Insights, and an Http5xx metric alert - is provisioned by [`infra/main.bicep`](./infra/main.bicep).
 
 ## Suggested audience
+
 - IT Pros
 - SREs / platform engineers
 - cloud operations teams
 - Azure architects responsible for operating production workloads
 
 ## Suggested workshop narrative
+
 1. **Teach it** - give the agent context, goals, and guardrails
 2. **Connect it** - wire the agent to observability, incident, and code systems
 3. **Let it work** - run a realistic incident and review outcomes
@@ -108,9 +111,10 @@ SREinProd/
 ```
 
 ## Suggested workshop modules
+
 See [Workshop/ReadMe.md](./Workshop/ReadMe.md).
 
 ## Notes
+
 - The sample application is licensed MIT by Microsoft `Azure-Samples`. This repo ships only the infra/scripts/docs needed to integrate it.
 - Tenant-specific values (subscription, region, regional quotas) belong in `scripts/env.conf`, which is gitignored.
-
