@@ -10,7 +10,12 @@
       1. Verify required tooling (az, git, dotnet 9.x).
       2. Resolve the active Azure context (az login only if needed).
       3. Interactively select subscription / location / resource group
-         (defaults pulled from scripts/env.conf when present).
+         (defaults pulled from scripts/env.conf when present). The region
+         prompt presents a curated list of regions known to have App
+         Service Linux S1 quota for typical workshop subscriptions
+         (canadacentral, westus3, swedencentral); eastus and eastus2 are
+         intentionally not on the list because they are commonly capped
+         at 0 instances on internal / sponsored / MPN subscriptions.
       4. Persist the chosen values to scripts/env.conf for re-runs.
       5. Create the resource group if it does not exist.
       6. PREFLIGHT: `az deployment group validate` so quota / SKU
@@ -124,6 +129,72 @@ function Prompt-WithDefault([string]$Message, [string]$Default) {
     return $response.Trim()
 }
 
+# Curated list of regions known to have App Service Linux S1 quota for the
+# typical workshop subscription profile (internal / MPN / sponsored). eastus
+# and eastus2 are intentionally NOT on this list because those regions are
+# frequently capped at 0 instances on those subscription types. See README.md
+# (Prerequisites) for the quota note.
+$Script:RecommendedRegions = @(
+    @{ Slug = 'canadacentral';  Display = 'Canada Central' }
+    @{ Slug = 'westus3';        Display = 'West US 3' }
+    @{ Slug = 'swedencentral';  Display = 'Sweden Central' }
+)
+
+function Select-WorkshopRegion([string]$Default) {
+    # Returns a region slug. In NonInteractive mode, returns the default (or
+    # throws if no default is available).
+    if ($NonInteractive) {
+        if ([string]::IsNullOrWhiteSpace($Default)) {
+            throw 'Non-interactive mode but no default region available.'
+        }
+        return $Default
+    }
+
+    # Pick a sensible default index: env.conf value if it is one of the
+    # recommended regions, otherwise canadacentral (index 1).
+    $defaultIndex = 1
+    if ($Default) {
+        for ($i = 0; $i -lt $Script:RecommendedRegions.Count; $i++) {
+            if ($Script:RecommendedRegions[$i].Slug -eq $Default) {
+                $defaultIndex = $i + 1
+                break
+            }
+        }
+    }
+
+    Write-Host ''
+    Write-Host 'Select an Azure region for the workshop workload:' -ForegroundColor Cyan
+    Write-Host '  (these regions have known App Service Linux S1 quota; eastus and eastus2'
+    Write-Host '   are typically capped at 0 instances on workshop subscriptions)'
+    for ($i = 0; $i -lt $Script:RecommendedRegions.Count; $i++) {
+        $r = $Script:RecommendedRegions[$i]
+        Write-Host ('  [{0}] {1,-18} ({2})' -f ($i + 1), $r.Slug, $r.Display)
+    }
+    $otherIndex = $Script:RecommendedRegions.Count + 1
+    Write-Host ('  [{0}] Other (enter your own region)' -f $otherIndex)
+
+    while ($true) {
+        $response = Prompt-WithDefault 'Pick 1-3 (or 4 for Other)' ([string]$defaultIndex)
+        if ($response -match '^\d+$') {
+            $idx = [int]$response
+            if ($idx -ge 1 -and $idx -le $Script:RecommendedRegions.Count) {
+                return $Script:RecommendedRegions[$idx - 1].Slug
+            }
+            if ($idx -eq $otherIndex) {
+                $custom = Prompt-WithDefault 'Enter Azure region slug (e.g. westeurope)' ''
+                if ([string]::IsNullOrWhiteSpace($custom)) {
+                    Write-Host 'Region cannot be empty.' -ForegroundColor Yellow
+                    continue
+                }
+                Write-Host ''
+                Write-Host ("WARNING: '{0}' is not in the curated list. If your subscription has 0 quota there, deployment will fail at preflight." -f $custom) -ForegroundColor Yellow
+                return $custom.Trim().ToLowerInvariant()
+            }
+        }
+        Write-Host ('Invalid choice. Enter a number from 1 to {0}.' -f $otherIndex) -ForegroundColor Yellow
+    }
+}
+
 function Invoke-Az {
     # Run az and capture output as JSON. Throws on non-zero exit.
     $args = @($Args)
@@ -207,7 +278,7 @@ if (-not $EnvironmentName) { $EnvironmentName = if ($envMap.ENVIRONMENT_NAME)  {
 
 if (-not $Location) {
     $defaultLocation = if ($envMap.AZURE_LOCATION) { $envMap.AZURE_LOCATION } else { 'canadacentral' }
-    $Location = Prompt-WithDefault 'Azure region (App Service Linux with S1 quota)' $defaultLocation
+    $Location = Select-WorkshopRegion $defaultLocation
 }
 
 # Validate the region actually offers Linux App Service S1.
@@ -311,9 +382,11 @@ while ($validation.ExitCode -ne 0) {
         throw 'Preflight validation failed. See errors above.'
     }
     Write-Host ''
-    Write-Host 'This is a quota / SKU issue. You can pick a different region and try again.' -ForegroundColor Yellow
-    $newLocation = Prompt-WithDefault 'Enter a different Azure region (or blank to abort)' ''
-    if ([string]::IsNullOrWhiteSpace($newLocation)) { throw 'Aborted by user after quota failure.' }
+    Write-Host 'This is a quota / SKU issue. Pick a different region from the curated list:' -ForegroundColor Yellow
+    $newLocation = Select-WorkshopRegion $Location
+    if ([string]::IsNullOrWhiteSpace($newLocation) -or $newLocation -eq $Location) {
+        throw 'Aborted: same region selected after quota failure, or no region provided.'
+    }
     $normNew = ($newLocation -replace '\s','').ToLowerInvariant()
     $regionsJson = az appservice list-locations --linux-workers-enabled --sku S1 -o json 2>$null
     $regionMatch = ($regionsJson | ConvertFrom-Json) | Where-Object { ($_.name -replace '\s','').ToLowerInvariant() -eq $normNew }
