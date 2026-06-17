@@ -15,11 +15,10 @@ The lab is built around a real workload - [`Azure-Samples/app-service-dotnet-age
 
 ## Before you start
 
-Deploy the demo environment **before** Module 1 so the agent has something real to look at:
+Deploy the demo environment **before** Module 1 so the agent has something real to look at. On the repo root folder, run:
 
 ```powershell
-Copy-Item ..\scripts\env.template ..\scripts\env.conf
-pwsh ..\scripts\deploy-demo-env.ps1
+pwsh .\scripts\deploy-demo-env.ps1
 ```
 
 or `azd up`. Either path produces:
