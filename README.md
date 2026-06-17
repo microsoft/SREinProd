@@ -1,18 +1,6 @@
 # SREinProd Workshop
 
-A half-day workshop on deploying and using Azure SRE Agent in production.
-
-This scaffold is intentionally modeled after the structure used in the `microsoft/AIforITOps` repository:
-
-- a top-level README
-- deployment/setup guides
-- a `Workshop/` folder with numbered exercises
-- `infra/` and `scripts/` folders for environment setup
-- troubleshooting and facilitator assets
-
-## What this repo is for
-
-This workshop is designed for IT/Ops, SRE, and platform engineering teams who want to see how Azure SRE Agent can be deployed, connected to production signals, and used to investigate and remediate incidents.
+A half-day workshop on deploying and using Azure SRE Agent in productionThis workshop is designed for IT/Ops, SRE, and platform engineering teams who want to see how Azure SRE Agent can be deployed, connected to production signals, and used to investigate and remediate incidents.
 
 ## Sample workload
 
