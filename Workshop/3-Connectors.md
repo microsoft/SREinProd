@@ -89,10 +89,10 @@ The dialog header changes to **"Set up Log Analytics connector"**. Three require
 | Field | Workshop value | Notes |
 | --- | --- | --- |
 | **Name\*** | `log-analytics-demo` | This is how the agent will refer to the connector in chat. Lowercase, hyphenated. |
-| **Log Analytics workspace\*** | `log-sreinprod-demo-<suffix>` (resource group `rg-sreinprod-demo`) | Combobox listing every workspace the *agent's identity* can already see. Pick the one Module 1 created. |
+| **Log Analytics workspace\*** | `log-sreinprod-demo-<suffix>` (make sure you select the RG created with the workshop) | Combobox listing every workspace the *agent's identity* can already see. Pick the one Module 1 created. |
 | **Managed identity\*** | **`System assigned`** *(default)* | The connector authenticates to Log Analytics as the agent itself. Leave the default. The **`Add identity`** link is for advanced setups where you want a user-assigned identity instead. |
 
-> ℹ️ As soon as you pick the workspace, an info banner appears below it: *"Log Analytics Reader role needed on: rg-sreinprod-demo"*. The wizard cannot **grant** that role for you (unlike Module 2's *Azure resources* card, which did role assignments inline); it is informational only. If the agent's managed identity does not already have **Log Analytics Reader** on the RG holding the workspace, the connector will land in **`Status: Failed`** instead of **`Connected`**. For the workshop, the agent's RBAC on `rg-sreinprod-app` from Module 2 does **not** automatically extend to `rg-sreinprod-demo`. If the workspace lives in a different RG than the one you attached in Module 2, grant the role explicitly:
+> ℹ️ As soon as you pick the workspace, an info banner appears below it: *"Log Analytics Reader role needed on: <rg-name>"*. The wizard cannot **grant** that role for you (unlike Module 2's *Azure resources* card, which did role assignments inline); it is informational only. If the agent's managed identity does not already have **Log Analytics Reader** on the RG holding the workspace, the connector will land in **`Status: Failed`** instead of **`Connected`**. For the workshop, the agent's RBAC on `rg-sreinprod-app` from Module 2 does **not** automatically extend to `rg-sreinprod-demo`. If the workspace lives in a different RG than the one you attached in Module 2, grant the role explicitly:
 >
 > ```powershell
 > $miId = az resource show `
@@ -162,7 +162,7 @@ A correct answer:
 
 ### Step 7: Manage and clean up
 
-Hover the `log-analytics-demo` row and click the **`...`** kebab button. Two actions are exposed:
+On the SRE Agent portal, return to the Connectors page. Hover the `log-analytics-demo` row and click the **`...`** kebab button. Two actions are exposed:
 
 | Action | When to use it |
 | --- | --- |
