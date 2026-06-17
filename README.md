@@ -35,6 +35,8 @@ The lab uses [`Azure-Samples/app-service-dotnet-agent-tutorial`](https://github.
 
 Prerequisites: `az`, `git`, `pwsh` 7+, and the .NET 9 SDK on PATH.
 
+> **Important: regional quota.** The workshop deploys an **App Service Linux Standard (S1)** plan, which requires a non-zero per-region instance quota. On many internal, sponsored, MPN, and CSP subscriptions, `eastus` and `eastus2` are capped at **0 instances** for this SKU and the deploy will fail at preflight with `SubscriptionIsOverQuotaForSku`. The interactive script therefore offers a curated picker with three regions known to have quota on typical workshop subscriptions: **`canadacentral`**, **`westus3`**, and **`swedencentral`**. If you must use a different region, request an App Service Standard Linux instance quota increase first (Portal: Subscription, Usage + quotas, App Service, region, Request increase).
+
 ```powershell
 pwsh ./scripts/deploy-demo-env.ps1
 ```
