@@ -54,7 +54,7 @@ Confirm three platform-level prerequisites. If any of these are missing the **Cr
 az group create --name rg-sreinprod-agent --location eastus2
 ```
 
-> The agent is only available in **Sweden Central**, **East US 2**, and **Australia East**. We use `eastus2` for the workshop. Pick the same region you used for `rg-sreinprod-app` to keep latency and data-residency simple.
+> The agent is only available in **Sweden Central**, **East US 2**, and **Australia East**. We use `eastus2` for the workshop. Pick a location that is closer to the region you used for the workshop Resource Group (`rg-sreinprod-app` by default) to keep latency and data-residency simple.
 
 ### Step 2: Open the SRE Agent portal and start the wizard
 
@@ -136,13 +136,13 @@ Click **`Add resources`** on the **Azure resources** card. The **Add Azure resou
 
 **Sub-step 7b, Select resource groups.** The dialog header changes to **`Add resource groups`** with steps `1 Select resource groups`, `2 View agent permissions`.
 
-> ℹ️ The dialog shows a banner: *"Only resources where you have the Owner or User Access Administrator role are listed. These roles are required to grant the agent access."* If `rg-sreinprod-app` isn't visible, the missing permission is *yours*, not the agent's.
+> ℹ️ The dialog shows a banner: *"Only resources where you have the Owner or User Access Administrator role are listed. These roles are required to grant the agent access."* If the RG you created when you started this workshop isn't visible, the missing permission is *yours*, not the agent's.
 
-1. Narrow the **Subscription** filter to the one that holds `rg-sreinprod-app`.
-2. Use the search box if needed and **tick the box** next to `rg-sreinprod-app`.
+1. Narrow the **Subscription** filter to the one that holds the workshop RG.
+2. Use the search box if needed and **tick the box** next to workshop you deployed as part of the workshop.
 3. The counter should read **`1 selected`**. Click **Next**.
 
-**Sub-step 7c, View agent permissions.** This is where the old wizard's *Permissions* pane went. Pick a permission level. The role list on the page changes based on your choice:
+**Sub-step 7c, View agent permissions.** Select the Privileged permission for the agent. The role list on the page changes based on your choice:
 
 ![Permission level: Privileged shows all seven roles the agent receives](../images/wizard/10b-permissions-privileged.png)
 
@@ -151,9 +151,9 @@ Click **`Add resources`** on the **Azure resources** card. The **Add Azure resou
 | **Reader** *(default)* | `Reader`, `Monitoring Reader`, `Log Analytics Reader` (3 roles) | You want the agent to *propose* every action and have a human approve in chat. Safest. |
 | **Privileged** ⭐ recommended for this workshop | All Reader roles, plus `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor` (7 roles) | You want the agent to actually execute approved remediations end-to-end. Required for Module 6's *"flip `INJECT_ERROR` back to 0"* drill. |
 
-**Why Privileged for the workshop:** `Website Contributor` and `Web Plan Contributor` give the agent the ability to change app settings, swap slots, and restart the app, which is exactly the surface area Module 6 will exercise. The roles are scoped to the **single RG `rg-sreinprod-app`**, so the agent still can't touch anything in `rg-sreinprod-agent` or in unrelated RGs.
+**Why Privileged for the workshop:** `Website Contributor` and `Web Plan Contributor` give the agent the ability to change app settings, swap slots, and restart the app, which is exactly the surface area Module 6 will exercise. The roles are scoped to the **single RG**, so the agent still can't touch anything in `rg-sreinprod-agent` or in unrelated RGs.
 
-**Why not narrow it further (e.g. only `Website Contributor` on the web app):** the portal's Privileged mode is RG-scoped and atomic. There's no in-UI knob to scope per resource. If your security review requires it, you can use **Reader** here and add a narrower role manually via `az role assignment create --scope <webAppId>` afterwards. For the demo, RG-scope is fine.
+**Why not narrow it further (e.g. only `Website Contributor` on the web app):** the portal's Privileged mode is RG-scoped and atomic. There's no in-UI knob to scope per resource. If your security review requires it, you can use **Reader** here and add a narrower role manually via `az role assignment create --scope <webAppId>` afterwards. For the workshop, RG-scope is fine.
 
 The page shows the role table with status chips (**Already granted (0)** / **Needs assignment (7)**) and a confirmation strip: *"Required permissions will be granted automatically when you add resources."*
 
@@ -184,29 +184,29 @@ Click **`Sign in to GitHub`** and complete the OAuth grant **in the same browser
 
 > 🐞 **Known gotcha: "Invalid state / OAuth state rejected".** If the GitHub redirect comes back to a different browser session than the one that started it, you'll see `{"error":"Invalid state","message":"OAuth state rejected."}`. Cause: the OAuth popup opened (or was completed) in a *different* browser or profile than the SRE Agent tab, so the anti-CSRF state cookie can't be matched. Fix: cancel the dialog, click **`Connect repositories`** again, and ensure the GitHub sign-in completes **in the same browser session**. If it still fails (corporate browser policies, third-party-cookie blockers, etc.), switch to **PAT** on the same Authenticate step. It bypasses the OAuth handshake entirely.
 
-**Sub-step 8c, Add repositories.** This is **not a list picker**; it's a manual URL grid. Click **`+ Add`** and fill in one row per repo:
+**Sub-step 8c, Add repositories.** This is **not a list picker**; it's a manual URL grid. Fill out the first row to add our sample repo:
 
 | Column | Value for this workshop |
 | --- | --- |
-| **Repository URL\*** | The HTTPS URL of *your fork* of the demo app (e.g. `https://github.com/<you>/app-service-dotnet-agent-tutorial`). Use the open-in-new-tab icon to verify the URL resolves. |
-| **Display name\*** | Defaults to the repo name. Leave as `app-service-dotnet-agent-tutorial`. |
-| **Description** | `Sample .NET app` (free-form, surfaced in agent chat when it cites the repo). |
+| **Repository URL\*** | `https://github.com/Azure-Samples/app-service-dotnet-agent-tutorial` |
+| **Display name\*** | `app-service-dotnet-agent-tutorial` |
+| **Description** | `Sample .NET app` |
 
-> Add another row for your IaC repo (e.g. this `SREinProd` repo) if you want the agent to also understand `infra/main.bicep`. Not required for Module 2.
+> Add another row for your IaC repo (e.g. your forked `SREinProd` repo) if you want the agent to also understand `infra/main.bicep`. Not required for Module 2.
 
-Click **Save**. The **Code** card now reads **"1 repository"** ✅ and the status banner upgrades to *"SRE Agent can gain some insights into your apps."*
+Click **Save**. The **Code** card now reads **"1 repository"** ✅.
 
 ### Step 9: Smoke-test the agent
 
 Click **`Done and go to agent`** in the *Set up your agent* page footer (or use the breadcrumb to open the agent's chat view). In the chat pane, ask:
 
 ```text
-What App Services do you see in rg-sreinprod-app, and which alert rules are configured on them?
+What App Services do you see in <your workshop RG>, and which alert rules are configured on them?
 ```
 
 You should get back:
 
-- the demo web app (`app-sreinprod-demo-<suffix>`) and its `staging` slot,
+- the demo web app (`app-sreinprod-demo-<suffix>`),
 - the `Http5xx` metric alert defined in `infra/main.bicep`.
 
 **Why this prompt:** it exercises three of the agent's Azure-RBAC paths in one shot: ARM resource enumeration, App Service slot awareness, and Azure Monitor alert rules. If any of them comes back empty, the agent's RBAC didn't propagate. Recheck Step 7c before continuing to Module 4.
@@ -223,7 +223,7 @@ A correct answer (mentions the controllers, the `INJECT_ERROR` feature flag, etc
 
 - [ ] `Microsoft.App` provider is `Registered` on the subscription.
 - [ ] Agent resource (`sreagent-sreinprod`) exists in `rg-sreinprod-agent`, along with a sibling managed identity, Log Analytics workspace, and Application Insights instance.
-- [ ] You can open the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
+- [ ] You can open the agent at `https://sre.azure.com`.
 - [ ] On the *Set up your agent* page the **Azure resources** card reads **"1 resource group added"** (= `rg-sreinprod-app`).
 - [ ] The agent's managed identity holds the **7 Privileged-mode roles** on `rg-sreinprod-app` (`Reader`, `Monitoring Reader`, `Log Analytics Reader`, `Log Analytics Contributor`, `Application Insights Component Contributor`, `Website Contributor`, `Web Plan Contributor`). Verify with:
 
