@@ -24,10 +24,13 @@
          pick a different region and re-validates.
       7. `az deployment group create` of infra/main.bicep.
       8. Clone the upstream sample app into ./sample-app/.
-      9. Build with `dotnet publish -c Release`, zip the output, and
-         deploy it to the production slot AND the staging slot using
-         `az webapp deploy --slot` (bypasses azd's known slowness on
-         slot-enabled sites - the "Checking deployment slots" hang).
+      9. Build with `dotnet publish -c Release` ONCE, zip the output
+         with .NET ZipFile (fastest compression), and deploy the same
+         artifact to the production slot AND the staging slot in
+         PARALLEL via `az webapp deploy --slot` (bypasses azd's known
+         slowness on slot-enabled sites - the "Checking deployment
+         slots" hang - and avoids a duplicate build / serialised waits
+         for two cold-starts).
      10. Run scripts/smoke-test.ps1 against both slots.
 
     Sample app: https://github.com/Azure-Samples/app-service-dotnet-agent-tutorial
@@ -455,24 +458,80 @@ Write-Host '==> Cloning sample app...' -ForegroundColor Cyan
 & (Join-Path $PSScriptRoot 'clone-sample-app.ps1') -RepoUrl $sampleUrl -Ref $sampleRef -TargetDir (Join-Path $repoRoot $sampleDir)
 
 # =============================================================================
-# 10. Build + deploy to both slots (bypasses azd's slot-check hang)
+# 10. Build sample app once, then deploy to BOTH slots in parallel
+#     (bypasses azd's slot-check hang AND avoids a duplicate dotnet publish /
+#      serialised az webapp deploy calls).
 # =============================================================================
 
-Write-Host ''
-Write-Host '==> Deploying sample app to PRODUCTION slot...' -ForegroundColor Cyan
-& (Join-Path $PSScriptRoot 'deploy-to-slot.ps1') `
-    -SlotName 'production' `
-    -AppName $appName `
-    -ResourceGroup $ResourceGroup `
-    -SampleAppDir $sampleDir
+$sampleAppPath = Join-Path $repoRoot $sampleDir
+if (-not (Test-Path $sampleAppPath)) {
+    throw "Sample app not found at $sampleAppPath. Step 9 (clone) must have failed."
+}
+
+$artifactDir = Join-Path $repoRoot '.artifacts'
+$publishDir  = Join-Path $artifactDir 'publish'
+$zipPath     = Join-Path $artifactDir 'app.zip'
+
+if (Test-Path $publishDir) { Remove-Item -Recurse -Force $publishDir }
+if (Test-Path $zipPath)    { Remove-Item -Force $zipPath }
+New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
 
 Write-Host ''
-Write-Host ("==> Deploying sample app to '{0}' slot..." -f $slotName) -ForegroundColor Cyan
-& (Join-Path $PSScriptRoot 'deploy-to-slot.ps1') `
-    -SlotName $slotName `
-    -AppName $appName `
-    -ResourceGroup $ResourceGroup `
-    -SampleAppDir $sampleDir
+Write-Host '==> Publishing sample app (one build for both slots)...' -ForegroundColor Cyan
+dotnet publish $sampleAppPath -c Release -o $publishDir | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'dotnet publish failed.' }
+
+Write-Host '==> Packaging zip (fastest compression)...' -ForegroundColor Cyan
+Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+[System.IO.Compression.ZipFile]::CreateFromDirectory(
+    $publishDir,
+    $zipPath,
+    [System.IO.Compression.CompressionLevel]::Fastest,
+    $false
+)
+
+# Ensure Start-ThreadJob is available (ships with PowerShell 7 in the
+# Microsoft.PowerShell.ThreadJob module). Fall back to Start-Job if not.
+$useThreadJob = $null -ne (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)
+$startJob = if ($useThreadJob) { 'Start-ThreadJob' } else { 'Start-Job' }
+
+Write-Host ''
+Write-Host ("==> Deploying to PRODUCTION and '{0}' slots in parallel ({1})..." -f $slotName, $startJob) -ForegroundColor Cyan
+
+$deployScript = Join-Path $PSScriptRoot 'deploy-to-slot.ps1'
+$slotsToDeploy = @('production', $slotName)
+$jobs = foreach ($s in $slotsToDeploy) {
+    $jobArgs = @{
+        Name         = ("deploy-{0}" -f $s)
+        ArgumentList = @($deployScript, $s, $appName, $ResourceGroup, $zipPath)
+        ScriptBlock  = {
+            param($Script, $Slot, $App, $Rg, $Zip)
+            & $Script -SlotName $Slot -AppName $App -ResourceGroup $Rg -ZipPath $Zip
+        }
+    }
+    if ($useThreadJob) { Start-ThreadJob @jobArgs } else { Start-Job @jobArgs }
+}
+
+# Wait for all jobs, then stream each job's output sequentially so the log
+# stays readable. Failed jobs are collected and reported at the end.
+Wait-Job -Job $jobs | Out-Null
+$failed = @()
+foreach ($job in $jobs) {
+    Write-Host ''
+    Write-Host ("---- {0} output ----" -f $job.Name) -ForegroundColor DarkCyan
+    try {
+        Receive-Job -Job $job -ErrorAction Stop
+    } catch {
+        $failed += ("{0}: {1}" -f $job.Name, $_.Exception.Message)
+    }
+    if ($job.State -eq 'Failed' -and $failed -notcontains $job.Name) {
+        $failed += ("{0}: job state Failed" -f $job.Name)
+    }
+    Remove-Job -Job $job -Force
+}
+if ($failed.Count -gt 0) {
+    throw ("Slot deploy(s) failed:`n  - {0}" -f ($failed -join "`n  - "))
+}
 
 # =============================================================================
 # 11. Smoke test

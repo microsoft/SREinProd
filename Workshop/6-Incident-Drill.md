@@ -41,6 +41,23 @@ The drill flips `INJECT_ERROR=1` on the **production slot** of `app-sreinprod-de
 
 > All lab steps assume the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod` and the demo app under `rg-sreinprod-demo`. **Always confirm `scripts/env.conf` is populated before running any of the helper scripts** (otherwise they error out with *"APP_NAME is required"*).
 
+### At a glance
+
+The lab is 12 steps (9 core + 3 optional). Each step below adds the context and the *why*.
+
+1. **Step 1:** Baseline the three operator surfaces (**Operations Hub**, **Incidents**, chat home). No-op; just capture "healthy".
+2. **Step 2:** Run `pwsh ./scripts/demo-warmup.ps1` to inject the fault, then verify with `az monitor metrics list ... Http5xx`.
+3. **Step 3:** Wait 5 min for ingestion. Two alerts will fire (one Sev2 metric, one Sev3 smart detector).
+4. **Step 4:** Open **Incidents** in the agent; confirm the Sev3 row reads `Acknowledged / Completed` with `quickstart_response_plan` attached.
+5. **Step 5:** Click **`+ New Chat Thread`**, paste the workshop prompt verbatim, press **`Ctrl+Enter`**.
+6. **Step 6:** Observe the parallel tool fan-out; read the risk badges and inline command strings.
+7. **Step 7:** Scroll to the bottom of the thread, read the **Timeline / Root Cause / Code quote / Recommended Mitigation** report.
+8. **Step 8:** Click **`View trace`** at the top right of the chat; expand the `meta_agent` span tree.
+9. **Step 9:** Type **`no, leave the broken state in place`** (recommended default) in chat. *(See the table for `yes` and `swap` alternatives.)*
+10. **Step 10 (optional):** Run `pwsh ./scripts/smoke-test.ps1` to validate recovery (only if you replied `yes` in Step 9).
+11. **Step 11 (optional):** Re-open **Operations Hub** and inspect the new `Daily Volume by Source` bar.
+12. **Step 12 (optional):** Run `pwsh ./scripts/demo-rollback.ps1` to re-arm the demo for the next cohort (only if you replied `yes` in Step 9).
+
 ### Step 1: Baseline the operator surfaces
 
 Before flipping anything, capture what "healthy" looks like for the three places an operator will check during the incident. Doing this *before* the burst makes the post-burst delta obvious to participants.
@@ -73,11 +90,11 @@ Before flipping anything, capture what "healthy" looks like for the three places
 
 ### Step 2: Inject the fault
 
-From the workshop root run:
-
-```powershell
-pwsh ./scripts/demo-warmup.ps1
-```
+> **Action:** From the workshop root, run:
+>
+> ```powershell
+> pwsh ./scripts/demo-warmup.ps1
+> ```
 
 The script does four things, all attributed to the operator running it (so the Activity Log will show **your** UPN, which is what the agent will key off in Step 6):
 
@@ -104,19 +121,19 @@ Warmup complete. Give Application Insights and the Http5xx metric alert about 3-
 
 > ⚠️ **App Service restart timing.** Setting `INJECT_ERROR=1` triggers an App Service worker restart. The script's built-in `Start-Sleep -Seconds 10` between **3/4** and **4/4** is **deliberately tight** to keep the demo crisp, but on cold workers the restart can take longer than 10s, in which case the burst lands on the *old* process and you will see 200s instead of 500s. **Verify with `az monitor metrics list` (next callout). If `Http5xx` shows `0`, re-run only `4/4` (3 more sessions of 30 requests each) after another minute.**
 
-To confirm 5xx are actually flowing on the production slot, ask Azure Monitor directly:
-
-```powershell
-az monitor metrics list `
-  --resource (az webapp show -g $env:APP_RESOURCE_GROUP -n $env:APP_NAME --query id -o tsv) `
-  --metric Http5xx --aggregation Total --interval PT1M --output table
-```
+> **Action:** Confirm 5xx are actually flowing on the production slot by asking Azure Monitor directly:
+>
+> ```powershell
+> az monitor metrics list `
+>   --resource (az webapp show -g $env:APP_RESOURCE_GROUP -n $env:APP_NAME --query id -o tsv) `
+>   --metric Http5xx --aggregation Total --interval PT1M --output table
+> ```
 
 A successful burst shows a row with `Total` between **40** and **60** for the minute the fault burst ran. If `Total = 0` for every row in the last 10 minutes, the App Setting did not propagate before the burst. Re-drive sessions until `Total >= 5` (the alert's threshold).
 
 ### Step 3: Wait for ingestion and let the alerts fire
 
-App Insights ingestion latency is **2-5 minutes** for exceptions; the metric alert evaluates every **PT1M** against a **PT5M** rolling window. Set a 5-minute timer.
+> **Action:** Set a 5-minute timer. App Insights ingestion latency is **2-5 minutes** for exceptions; the metric alert evaluates every **PT1M** against a **PT5M** rolling window.
 
 Two alerts will fire from the same burst:
 
@@ -129,7 +146,9 @@ Two alerts will fire from the same burst:
 
 ### Step 4: Confirm the autonomous path - the Incidents inbox
 
-Open **Incidents** in the agent's left rail. The empty state from Step 1 is gone:
+> **Action:** Open **Incidents** in the agent's left rail.
+
+The empty state from Step 1 is gone:
 
 ![Incidents page now shows a Sev3 row, Acknowledged + Completed, with quickstart_response_plan attached](../images/wizard/65-incidents-with-alert.png)
 
@@ -147,15 +166,19 @@ Open **Incidents** in the agent's left rail. The empty state from Step 1 is gone
 
 > 🔒 **The autonomous contract proven.** The row reads `Acknowledged / Completed` because Module 5's plan was saved with **Autonomy = Review** but the **read-only steps** of the `EXECUTION_PLAN` (gather logs, query AppInsights, list deployments, write a summary) are **not** mutating, so they ran without prompting. The plan only **stops** at the proposed write step. If you saved the plan as **Autonomous (Default)** instead, this row would still read `Completed` but the `INJECT_ERROR=0` rollback may have already executed - **always re-check the autonomy column before treating a `Completed` row as "investigation only".**
 
-Click the alert title to open the agent's response-plan summary in chat. Treat its findings as **evidence collected by the autonomous path**; we will reproduce the same evidence chain interactively in the next steps for participants who joined late.
+> **Action:** Click the alert title to open the agent's response-plan summary in chat.
+
+Treat its findings as **evidence collected by the autonomous path**; we will reproduce the same evidence chain interactively in the next steps for participants who joined late.
 
 ### Step 5: Open chat and submit the investigation prompt
 
-In the left rail click **`+ New Chat Thread`**. The thread opens blank with the prompt entry at the bottom:
+> **Action:** In the left rail click **`+ New Chat Thread`**.
+
+The thread opens blank with the prompt entry at the bottom:
 
 ![Empty new chat thread, sources pill, empty input](../images/wizard/59-new-chat-blank.png)
 
-Paste the workshop prompt verbatim into the input. Use this exact wording so participant traces match the screenshots:
+> **Action:** Paste the workshop prompt verbatim into the input. Use this exact wording so participant traces match the screenshots:
 
 ```text
 We are seeing a spike of HTTP 500 errors on our production application.
@@ -166,7 +189,9 @@ likely root cause?
 
 ![Prompt typed into the chat input, Send button active](../images/wizard/60-investigation-prompt-typed.png)
 
-Press **`Ctrl+Enter`** (or click the round blue Send button). The chat thread is created with the title **`Production HTTP 500 Error Spike Investigation`** in the left rail and the agent's first reply appears within ~2s:
+> **Action:** Press **`Ctrl+Enter`** (or click the round blue Send button).
+
+The chat thread is created with the title **`Production HTTP 500 Error Spike Investigation`** in the left rail and the agent's first reply appears within ~2s:
 
 > *"I'll investigate the HTTP 500 errors immediately. Let me start by gathering context from multiple sources in parallel."*
 
@@ -207,7 +232,7 @@ The agent surfaces a `ManageTodoList` tool call in the trace (Step 7 below) that
 
 ### Step 7: Read the final report
 
-After ~90-120s of tool work the agent assembles a final report under the chat title **`Production HTTP 500 Error Spike Investigation`**. Scroll to the bottom of the thread.
+> **Action:** After ~90-120s of tool work the agent assembles a final report under the chat title **`Production HTTP 500 Error Spike Investigation`**. Scroll to the bottom of the thread.
 
 ![Final report: Timeline with operator UPN, Root Cause with INJECT_ERROR=1, code quote at Program.cs:11, exception name and call site, Recommended Mitigation prompt](../images/wizard/64-investigation-progress3.png)
 
@@ -228,7 +253,9 @@ The report has six sections in this order:
 
 ### Step 8: Inspect the trace
 
-Click **`View trace`** at the top right of the chat. A modal opens showing a 2-pane trace explorer:
+> **Action:** Click **`View trace`** at the top right of the chat.
+
+A modal opens showing a 2-pane trace explorer:
 
 ![Expanded trace tree showing claude-opus-4-6 model generations, Reasoning spans, Tool calls including ManageTodoList, RunAzCliReadCommands, monitor-client_monitor_resource_log_query x2, SearchIncidentKnowledge](../images/wizard/67-trace-view.png)
 
@@ -257,7 +284,9 @@ For the workshop run the visible chain (top-down) was:
 12. `Tool` `ManageTodoList` *(progress update on the checklist)*.
 13. ... continues for a total of `112 sec` wall time.
 
-Click any tree node to load its **input** + **output** in the right pane. For tool nodes that means the literal JSON request and response - this is where you would copy the failing KQL, the Activity Log filter, or the `az` invocation if you needed to reproduce a step manually.
+> **Action:** Click any tree node to load its **input** + **output** in the right pane.
+
+For tool nodes that means the literal JSON request and response - this is where you would copy the failing KQL, the Activity Log filter, or the `az` invocation if you needed to reproduce a step manually.
 
 > 💡 **What the trace gives you that chat does not.** Chat shows you the agent's *narration*. The trace shows you the **plan-then-act loop**: every model decision, every tool input, every tool output. **For post-incident reviews this is the artifact you save**, not the chat transcript. It tells you whether a wrong answer was a model hallucination (bad model generation) or bad evidence (bad tool input), and lets you pin a regression to a specific tool version.
 
@@ -269,7 +298,7 @@ Back in the chat thread, the agent's last message is the question:
 
 > *"Would you like me to remove the `INJECT_ERROR` setting from the production app?"*
 
-You have three choices. Pick **one and only one** for the workshop, and tell participants out loud which path you took so they can map it to Module 5's autonomy radio:
+> **Action:** Reply in chat. You have three choices. Pick **one and only one** for the workshop, and tell participants out loud which path you took so they can map it to Module 5's autonomy radio:
 
 | Reply | What the agent does | When to use this |
 | --- | --- | --- |
@@ -281,11 +310,13 @@ You have three choices. Pick **one and only one** for the workshop, and tell par
 
 ### Step 10 *(optional)*: Validate recovery
 
-Only run this step if you replied **`yes`** in Step 9. From the workshop root:
+Only run this step if you replied **`yes`** in Step 9.
 
-```powershell
-pwsh ./scripts/smoke-test.ps1
-```
+> **Action:** From the workshop root, run:
+>
+> ```powershell
+> pwsh ./scripts/smoke-test.ps1
+> ```
 
 The script issues `Invoke-WebRequest` against both `https://<APP_URL>` and `https://<STAGING_URL>` and asserts `200`. Expected output:
 
@@ -299,7 +330,9 @@ If production returns `200` and the agent's **Incidents** row has *not* moved of
 
 ### Step 11 *(optional)*: Look at the Operations Hub volume chart
 
-Re-open **Operations Hub** in the left rail. The **`Daily Volume by Source`** chart now has a fresh bar on today's date with two segments:
+> **Action:** Re-open **Operations Hub** in the left rail.
+
+The **`Daily Volume by Source`** chart now has a fresh bar on today's date with two segments:
 
 ![Operations Hub after the incident, Daily Volume bar with Conversations purple and Incidents orange on today](../images/wizard/68-ops-hub-post-incident.png)
 
@@ -315,11 +348,13 @@ Re-open **Operations Hub** in the left rail. The **`Daily Volume by Source`** ch
 
 If you replied **`no`** in Step 9, the environment is already in the right shape for the next workshop cohort - **stop here**.
 
-If you replied **`yes`** and want to put the broken state back for someone else, run:
+If you replied **`yes`** and want to put the broken state back for someone else:
 
-```powershell
-pwsh ./scripts/demo-rollback.ps1
-```
+> **Action:** Run:
+>
+> ```powershell
+> pwsh ./scripts/demo-rollback.ps1
+> ```
 
 The script re-asserts `INJECT_ERROR=0` on production (idempotent), `INJECT_ERROR=1` on staging (matching the post-deploy baseline), and runs a single smoke test. **It does not delete the chat thread or the Incidents row** - those are useful as historical context for the next cohort. Delete them by hand if you want the agent to look "fresh".
 

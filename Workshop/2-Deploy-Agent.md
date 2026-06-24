@@ -44,23 +44,41 @@ Confirm three platform-level prerequisites. If any of these are missing the **Cr
 >
 > The workshop covers steps for both flows, then adds two cards (`Azure resources` is required for Module 6; `Code` makes the agent dramatically smarter at root-causing app errors).
 
+### At a glance
+
+The full lab is 9 steps. The actions in this list are the ones that actually move you forward; each step below adds the context and the *why*.
+
+1. **Step 1:** Run `az group create --name rg-sreinprod-agent --location eastus2`.
+2. **Step 2:** Open <https://aka.ms/sreagent>, sign in, click **`Create agent`**.
+3. **Step 3:** Fill the **Basics** pane with the workshop values, click **`Next`**.
+4. **Step 4:** Verify the **Review** pane, click **`Create`**.
+5. **Step 5:** Wait ~2-4 min for deployment, click **`Set up your agent`**.
+6. **Step 6:** Inspect the four data-source cards (no action; orientation only).
+7. **Step 7:** On the **Azure resources** card, click **`Add resources`** -> **Choose resource groups** -> tick `rg-sreinprod-app` -> **Privileged** -> **`Add resource group`**.
+8. **Step 8:** On the **Code** card, click **`Connect repositories`** -> **GitHub** -> **Your account** -> add the `app-service-dotnet-agent-tutorial` URL -> **`Save`**.
+9. **Step 9:** Click **`Done and go to agent`**, then run the two smoke-test prompts in chat.
+
 ### Step 1: Create the agent resource group
 
 **What:** create an empty resource group that will hold *only* the agent and its automatically-provisioned dependencies (Managed Identity, Application Insights, Log Analytics workspace, the `Microsoft.App/SREAgents` resource itself).
 
 **Why:** keeping the agent in its own RG (`rg-sreinprod-agent`) separates the *observer* from the *observed* (`rg-sreinprod-app`). You can delete or redeploy the demo workload without disturbing the agent, and the agent's own telemetry never gets mixed up with the workload's telemetry.
 
-```powershell
-az group create --name rg-sreinprod-agent --location eastus2
-```
+> **Action:** Run:
+>
+> ```powershell
+> az group create --name rg-sreinprod-agent --location eastus2
+> ```
 
 > The agent is only available in **Sweden Central**, **East US 2**, and **Australia East**. We use `eastus2` for the workshop. Pick a location that is closer to the region you used for the workshop Resource Group (`rg-sreinprod-app` by default) to keep latency and data-residency simple.
 
 ### Step 2: Open the SRE Agent portal and start the wizard
 
-1. Browse to <https://aka.ms/sreagent> (it redirects to `https://sre.azure.com`).
-2. Sign in with the same identity that owns the demo subscription.
-3. The **Agents** list page loads. If this is your first agent you'll see the empty-state card *"Create your first Azure SRE Agent"* with a primary **`Create agent`** button. Click it. (Otherwise use the **`+ Create agent`** button on the top toolbar.)
+> **Action:**
+>
+> 1. Browse to <https://aka.ms/sreagent> (redirects to `https://sre.azure.com`).
+> 2. Sign in with the identity that owns the demo subscription.
+> 3. On the **Agents** list page, click **`Create agent`** (the empty-state primary button, or **`+ Create agent`** on the top toolbar).
 
 **What:** this opens a 3-step dialog titled **Create agent** with header tabs **`1 Basics`**, **`2 Review`**, **`3 Deploy`**.
 
@@ -83,7 +101,7 @@ Use these exact values so later modules' screenshots and scripts line up.
 
 > ⚠️ **Model provider didn't appear at first.** The radio group only renders once a subscription is selected. If you don't see it, finish picking the Subscription and it will materialise.
 
-Click **Next**.
+> **Action:** Click **`Next`**.
 
 ### Step 4: Confirm the **Review** pane
 
@@ -91,7 +109,7 @@ The Review pane echoes back **only four fields**: Agent name, Region, Subscripti
 
 > 🔍 **Important:** the Review pane does **not** show your Model provider or Application Insights choice. If you're unsure, click **Back** and double-check the Basics pane *before* clicking Create. Those values cannot be changed after deployment.
 
-Click **Create**.
+> **Action:** Click **`Create`**.
 
 ### Step 5: Watch the **Deploy** pane
 
@@ -109,7 +127,7 @@ Deployment typically takes 2 to 4 minutes. While it runs, the dialog is modal (C
 
 When the banner flips from *"Deployment in progress…"* to ✅ **"Deployment succeeded"**, the **`Set up your agent`** button activates.
 
-Click **`Set up your agent`**.
+> **Action:** Click **`Set up your agent`**.
 
 ### Step 6: Land on **"Set up your agent"** and inspect the four data-source cards
 
@@ -130,17 +148,21 @@ We will connect **Azure resources** (required, Step 7) and **Code** (recommended
 
 ### Step 7: Connect **Azure resources** (required)
 
-Click **`Add resources`** on the **Azure resources** card. The **Add Azure resources** dialog opens with its own two-step header (`1 Choose resource type`, `2 Choose subscriptions`).
+> **Action:** On the **Azure resources** card, click **`Add resources`**. The **Add Azure resources** dialog opens with its own two-step header (`1 Choose subscriptions`, `2 Choose resource type`).
 
-**Sub-step 7a, Choose resource type.** Select **`Choose resource groups`** (least-privilege; the alternative `Choose subscriptions` would give the agent visibility into *every* RG in the sub). Click **Next**.
+**Sub-step 7a, Choose resource type.** Select **`Choose resource groups`** (least-privilege; the alternative `Choose subscriptions` would give the agent visibility into *every* RG in the sub).
+
+> **Action:** Click **`Next`**.
 
 **Sub-step 7b, Select resource groups.** The dialog header changes to **`Add resource groups`** with steps `1 Select resource groups`, `2 View agent permissions`.
 
 > ℹ️ The dialog shows a banner: *"Only resources where you have the Owner or User Access Administrator role are listed. These roles are required to grant the agent access."* If the RG you created when you started this workshop isn't visible, the missing permission is *yours*, not the agent's.
 
-1. Narrow the **Subscription** filter to the one that holds the workshop RG.
-2. Use the search box if needed and **tick the box** next to workshop you deployed as part of the workshop.
-3. The counter should read **`1 selected`**. Click **Next**.
+> **Action:**
+>
+> 1. Narrow the **Subscription** filter to the one that holds the workshop RG.
+> 2. Tick the box next to the workshop RG (use the search box if needed).
+> 3. Confirm the counter reads **`1 selected`**, then click **`Next`**.
 
 **Sub-step 7c, View agent permissions.** Select the Privileged permission for the agent. The role list on the page changes based on your choice:
 
@@ -157,11 +179,13 @@ Click **`Add resources`** on the **Azure resources** card. The **Add Azure resou
 
 The page shows the role table with status chips (**Already granted (0)** / **Needs assignment (7)**) and a confirmation strip: *"Required permissions will be granted automatically when you add resources."*
 
-Click **`Add resource group`** to commit. Back on the *Set up your agent* page the **Azure resources** card now reads **"1 resource group added"** with `Add more` and `Show details` actions.
+> **Action:** Click **`Add resource group`** to commit.
+
+Back on the *Set up your agent* page the **Azure resources** card now reads **"1 resource group added"** with `Add more` and `Show details` actions.
 
 ### Step 8: Connect **Code** (recommended)
 
-Click **`Connect repositories`** on the **Code** card. The **Add repositories** dialog has three steps: `1 Choose a platform`, `2 Authenticate`, `3 Add repositories`.
+> **Action:** On the **Code** card, click **`Connect repositories`**. The **Add repositories** dialog has three steps: `1 Choose a platform`, `2 Authenticate`, `3 Add repositories`.
 
 **Sub-step 8a, Choose a platform.**
 
@@ -170,7 +194,7 @@ Click **`Connect repositories`** on the **Code** card. The **Add repositories** 
 | **Platform** | **GitHub** (alternative: **Azure DevOps**) |
 | **GitHub host\*** | `github.com` (use `<tenant>.ghe.com` for GitHub Enterprise Cloud; GitHub Enterprise *Server* is not supported) |
 
-Click **Next**.
+> **Action:** Click **`Next`**.
 
 **Sub-step 8b, Authenticate.** Choose a sign-in method:
 
@@ -180,7 +204,7 @@ Click **Next**.
 | **PAT** | Fallback if OAuth fails or your tenant blocks OAuth apps. Use a fine-grained PAT with **read-only contents** on the one repo. |
 | **Bring your own GitHub App** | Production option for teams: survives the original creator leaving, and lets you scope per org. |
 
-Click **`Sign in to GitHub`** and complete the OAuth grant **in the same browser window**. When the panel updates to show **Connected as `<your-handle>`** ✅, click **Next**.
+> **Action:** Click **`Sign in to GitHub`** and complete the OAuth grant **in the same browser window**. When the panel updates to show **Connected as `<your-handle>`** ✅, click **`Next`**.
 
 > 🐞 **Known gotcha: "Invalid state / OAuth state rejected".** If the GitHub redirect comes back to a different browser session than the one that started it, you'll see `{"error":"Invalid state","message":"OAuth state rejected."}`. Cause: the OAuth popup opened (or was completed) in a *different* browser or profile than the SRE Agent tab, so the anti-CSRF state cookie can't be matched. Fix: cancel the dialog, click **`Connect repositories`** again, and ensure the GitHub sign-in completes **in the same browser session**. If it still fails (corporate browser policies, third-party-cookie blockers, etc.), switch to **PAT** on the same Authenticate step. It bypasses the OAuth handshake entirely.
 
@@ -194,11 +218,13 @@ Click **`Sign in to GitHub`** and complete the OAuth grant **in the same browser
 
 > Add another row for your IaC repo (e.g. your forked `SREinProd` repo) if you want the agent to also understand `infra/main.bicep`. Not required for Module 2.
 
-Click **Save**. The **Code** card now reads **"1 repository"** ✅.
+> **Action:** Click **`Save`**.
+
+The **Code** card now reads **"1 repository"** ✅.
 
 ### Step 9: Smoke-test the agent
 
-Click **`Done and go to agent`** in the *Set up your agent* page footer (or use the breadcrumb to open the agent's chat view). In the chat pane, ask:
+> **Action:** Click **`Done and go to agent`** in the *Set up your agent* page footer (or use the breadcrumb to open the agent's chat view). In the chat pane, ask:
 
 ```text
 What App Services do you see in <your workshop RG>, and which alert rules are configured on them?
