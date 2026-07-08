@@ -23,10 +23,10 @@ pwsh .\scripts\deploy-demo-env.ps1
 
 or `azd up`. Either path produces:
 
-- a healthy production slot of the sample web app,
-- a faulty staging slot (`INJECT_ERROR=1`),
+- A healthy production slot of the sample web app,
+- A faulty staging slot (`INJECT_ERROR=1`),
 - Application Insights + Log Analytics,
-- an Http5xx metric alert ready to fire during Module 6.
+- An Http5xx metric alert ready to fire during Module 6.
 
 ## Exercises
 
