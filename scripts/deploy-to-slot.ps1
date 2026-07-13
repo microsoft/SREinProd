@@ -22,13 +22,20 @@
 
 .PARAMETER SampleAppDir
     Local sample app directory. Defaults to SAMPLE_APP_DIR from scripts/env.conf.
+
+.PARAMETER ZipPath
+    Optional. Path to a pre-built zip artifact (produced by `dotnet publish`
+    + zip). When supplied, the script skips the publish/zip steps and uses
+    this artifact as-is. Used by deploy-demo-env.ps1 to build the app once
+    and fan out to multiple slots in parallel.
 #>
 [CmdletBinding()]
 param(
     [string]$SlotName = 'staging',
     [string]$AppName,
     [string]$ResourceGroup,
-    [string]$SampleAppDir
+    [string]$SampleAppDir,
+    [string]$ZipPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,32 +59,47 @@ if (-not $AppName -or -not $ResourceGroup) {
     throw "AppName and ResourceGroup are required. Provide them as parameters or fill scripts/env.conf."
 }
 
-$sampleAppPath = Join-Path $repoRoot $SampleAppDir
-if (-not (Test-Path $sampleAppPath)) {
-    throw "Sample app not found at $sampleAppPath. Run scripts/clone-sample-app.ps1 first."
-}
-
-if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-    throw "dotnet SDK is required but was not found on PATH."
-}
 if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
     throw "Azure CLI (az) is required but was not found on PATH."
 }
 
-$artifactDir = Join-Path $repoRoot '.artifacts'
-$publishDir = Join-Path $artifactDir 'publish'
-$zipPath = Join-Path $artifactDir ("app-{0}.zip" -f $SlotName)
+if ($ZipPath) {
+    # Caller supplied a pre-built artifact - skip publish + zip entirely.
+    if (-not (Test-Path $ZipPath)) {
+        throw "ZipPath '$ZipPath' was provided but does not exist."
+    }
+    $zipPath = (Resolve-Path $ZipPath).Path
+    Write-Host ("Using pre-built artifact: {0}" -f $zipPath) -ForegroundColor DarkGray
+} else {
+    $sampleAppPath = Join-Path $repoRoot $SampleAppDir
+    if (-not (Test-Path $sampleAppPath)) {
+        throw "Sample app not found at $sampleAppPath. Run scripts/clone-sample-app.ps1 first."
+    }
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        throw "dotnet SDK is required but was not found on PATH."
+    }
 
-if (Test-Path $publishDir) { Remove-Item -Recurse -Force $publishDir }
-if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
-New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
+    $artifactDir = Join-Path $repoRoot '.artifacts'
+    $publishDir = Join-Path $artifactDir 'publish'
+    $zipPath = Join-Path $artifactDir ("app-{0}.zip" -f $SlotName)
 
-Write-Host "Publishing sample app..." -ForegroundColor Cyan
-dotnet publish $sampleAppPath -c Release -o $publishDir | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed." }
+    if (Test-Path $publishDir) { Remove-Item -Recurse -Force $publishDir }
+    if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+    New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
 
-Write-Host "Packaging zip..." -ForegroundColor Cyan
-Compress-Archive -Path (Join-Path $publishDir '*') -DestinationPath $zipPath -Force
+    Write-Host "Publishing sample app..." -ForegroundColor Cyan
+    dotnet publish $sampleAppPath -c Release -o $publishDir | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed." }
+
+    Write-Host "Packaging zip..." -ForegroundColor Cyan
+    Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+    [System.IO.Compression.ZipFile]::CreateFromDirectory(
+        $publishDir,
+        $zipPath,
+        [System.IO.Compression.CompressionLevel]::Fastest,
+        $false
+    )
+}
 
 Write-Host ("Deploying to {0} (slot: {1})..." -f $AppName, $SlotName) -ForegroundColor Cyan
 
