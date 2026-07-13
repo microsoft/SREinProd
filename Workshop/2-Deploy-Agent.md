@@ -44,9 +44,11 @@ Confirm three platform-level prerequisites. If any of these are missing the **Cr
 >
 > The workshop covers steps for both flows, then adds two cards (`Azure resources` is required for Module 6; `Code` makes the agent dramatically smarter at root-causing app errors).
 
-### At a glance
+### Roadmap (read only, don't execute yet)
 
-The full lab is 9 steps. The actions in this list are the ones that actually move you forward; each step below adds the context and the *why*.
+> **This section is a preview, not the lab.** Skim it so you know where you're going, then scroll past it and start executing at **Step 1** below. Every action listed here is repeated in the detailed step that follows, with the context and the *why*.
+
+The full lab is 9 steps:
 
 1. **Step 1:** Run `az group create --name rg-sreinprod-agent --location eastus2`.
 2. **Step 2:** Open <https://aka.ms/sreagent>, sign in, click **`Create agent`**.
@@ -58,7 +60,13 @@ The full lab is 9 steps. The actions in this list are the ones that actually mov
 8. **Step 8:** On the **Code** card, click **`Connect repositories`** -> **GitHub** -> **Your account** -> add the `app-service-dotnet-agent-tutorial` URL -> **`Save`**.
 9. **Step 9:** Click **`Done and go to agent`**, then run the two smoke-test prompts in chat.
 
-### Step 1: Create the agent resource group
+---
+
+### Execute the lab
+
+> Start here. Do the steps below in order. Each one has an explicit **Action** callout with the exact command or click path.
+
+#### Step 1: Create the agent resource group
 
 **What:** create an empty resource group that will hold *only* the agent and its automatically-provisioned dependencies (Managed Identity, Application Insights, Log Analytics workspace, the `Microsoft.App/SREAgents` resource itself).
 
@@ -72,7 +80,7 @@ The full lab is 9 steps. The actions in this list are the ones that actually mov
 
 > The agent is only available in **Sweden Central**, **East US 2**, and **Australia East**. We use `eastus2` for the workshop. Pick a location that is closer to the region you used for the workshop Resource Group (`rg-sreinprod-app` by default) to keep latency and data-residency simple.
 
-### Step 2: Open the SRE Agent portal and start the wizard
+#### Step 2: Open the SRE Agent portal and start the wizard
 
 > **Action:**
 >
@@ -84,7 +92,7 @@ The full lab is 9 steps. The actions in this list are the ones that actually mov
 
 **Why portal (not CLI/Bicep) for the workshop:** the wizard is the easiest way to see exactly which roles and dependencies the agent needs, and it leaves a clean ARM deployment in `rg-sreinprod-agent`, *Deployments*, that you can inspect afterwards if you ever need to reproduce this with IaC.
 
-### Step 3: Fill in the **Basics** pane
+#### Step 3: Fill in the **Basics** pane
 
 Use these exact values so later modules' screenshots and scripts line up.
 
@@ -103,7 +111,7 @@ Use these exact values so later modules' screenshots and scripts line up.
 
 > **Action:** Click **`Next`**.
 
-### Step 4: Confirm the **Review** pane
+#### Step 4: Confirm the **Review** pane
 
 The Review pane echoes back **only four fields**: Agent name, Region, Subscription, Resource group.
 
@@ -111,7 +119,7 @@ The Review pane echoes back **only four fields**: Agent name, Region, Subscripti
 
 > **Action:** Click **`Create`**.
 
-### Step 5: Watch the **Deploy** pane
+#### Step 5: Watch the **Deploy** pane
 
 Deployment typically takes 2 to 4 minutes. While it runs, the dialog is modal (Close/Cancel are disabled) and the **Resource operations** list streams progress live. In a normal run you'll see seven operations succeed in this order:
 
@@ -129,7 +137,7 @@ When the banner flips from *"Deployment in progress…"* to ✅ **"Deployment su
 
 > **Action:** Click **`Set up your agent`**.
 
-### Step 6: Land on **"Set up your agent"** and inspect the four data-source cards
+#### Step 6: Land on **"Set up your agent"** and inspect the four data-source cards
 
 You're now on the agent's overview page (URL: `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`).
 
@@ -146,7 +154,7 @@ The banner says *"More context. Better investigations."* and lists four data sou
 
 We will connect **Azure resources** (required, Step 7) and **Code** (recommended, Step 8). You can leave the other two for now.
 
-### Step 7: Connect **Azure resources** (required)
+#### Step 7: Connect **Azure resources** (required)
 
 > **Action:** On the **Azure resources** card, click **`Add resources`**. The **Add Azure resources** dialog opens with its own two-step header (`1 Choose subscriptions`, `2 Choose resource type`).
 
@@ -183,7 +191,7 @@ The page shows the role table with status chips (**Already granted (0)** / **Nee
 
 Back on the *Set up your agent* page the **Azure resources** card now reads **"1 resource group added"** with `Add more` and `Show details` actions.
 
-### Step 8: Connect **Code** (recommended)
+#### Step 8: Connect **Code** (recommended)
 
 > **Action:** On the **Code** card, click **`Connect repositories`**. The **Add repositories** dialog has three steps: `1 Choose a platform`, `2 Authenticate`, `3 Add repositories`.
 
@@ -222,7 +230,7 @@ Back on the *Set up your agent* page the **Azure resources** card now reads **"1
 
 The **Code** card now reads **"1 repository"** ✅.
 
-### Step 9: Smoke-test the agent
+#### Step 9: Smoke-test the agent
 
 > **Action:** Click **`Done and go to agent`** in the *Set up your agent* page footer (or use the breadcrumb to open the agent's chat view). In the chat pane, ask:
 
