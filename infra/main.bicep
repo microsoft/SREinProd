@@ -303,6 +303,7 @@ resource http5xxAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
       'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
       allOf: [
         {
+          criterionType: 'StaticThresholdCriterion'
           name: 'Http5xx'
           metricNamespace: 'Microsoft.Web/sites'
           metricName: 'Http5xx'
