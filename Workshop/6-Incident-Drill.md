@@ -45,7 +45,7 @@ The drill flips `INJECT_ERROR=1` on the **production slot** of `app-sreinprod-de
 
 Before flipping anything, capture what "healthy" looks like for the three places an operator will check during the incident. Doing this *before* the burst makes the post-burst delta obvious to participants.
 
-**1a. Open the agent's `Operations Hub`.** The page header reads *"View key metrics, insights, and incident analytics for your agent at a glance."* Two tiles matter:
+**1a. Open the agent's `Operations Hub`.** The page header reads *"View key metrics, insights, and incident analytics for your agent at a glance."* Three tiles matter:
 
 | Surface | Healthy reading |
 | --- | --- |
@@ -113,6 +113,8 @@ az monitor metrics list `
 ```
 
 A successful burst shows a row with `Total` between **40** and **60** for the minute the fault burst ran. If `Total = 0` for every row in the last 10 minutes, the App Setting did not propagate before the burst. Re-drive sessions until `Total >= 5` (the alert's threshold).
+
+If you do not see any `Total` values above 0 for the last 10 minutes, you can alternatively open the app on your browser by visiting `https://<APP_URL>` and clicking the **Increment"** button 6 times. The app will throw the exception and you will see a 500 response in your browser. Repeat the process multiple times to generate a burst of 5xx responses. The agent will pick up the spike in exceptions and the metric alert will fire.
 
 ### Step 3: Wait for ingestion and let the alerts fire
 

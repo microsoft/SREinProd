@@ -76,9 +76,9 @@ The Azure Monitor card reads:
 
 > *"Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."*
 
-A **second** card now appears below: **`2 Quickstart Response Plan`** with a toggle **`Create a default response plan`** *(default: ON)*. Subtitle: *"Add a default incident response plan for the agent to use for Sev3 alerts."*
+A **second** card now appears below: **`2 Quickstart Response Plan`** with a toggle **`Create a default response plan`** *(default: OFF)*. Subtitle: *"Add a default incident response plan for the agent to use for Sev3 alerts."*
 
-Leave the toggle **ON**. A warning banner appears under the toggle:
+Change the toggle to **ON**. A warning banner appears under the toggle:
 
 ![Quickstart toggle ON, autonomous warning banner](../images/wizard/41-quickstart-toggle-on.png)
 
@@ -115,7 +115,7 @@ Click **`Incident Response Plans`** in the left rail again. The empty state is g
 | **Status** | `On` |
 | **Autonomy level** | `Review` *(visible by horizontal scroll)* |
 
-Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a persistent status pill. The toolbar buttons that were disabled in Step 1 are now live: **`+ New incident response plan`** and selecting a row enables **`Delete`** and **`Turn off`**.
+Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a persistent status pill.
 
 > 🔬 **Sev3, why?** The Quickstart toggle hardcodes Sev3. Sev3 in Azure Monitor is "warning" - not a paging event. We picked it as the workshop-safe default so a Quickstart plan cannot accidentally action a Sev0/Sev1 outage. To change it, click the plan and edit the **`Severity`** field on the wizard's Step 1.
 
@@ -125,35 +125,9 @@ Click the **`quickstart_response_plan`** link. The plan editor opens with the he
 
 ![Edit plan, 3-step wizard, custom-plan checkbox unchecked](../images/wizard/45-quickstart-plan-detail.png)
 
-| Step | Label |
-| --- | --- |
-| 1 | **Set up incident filters** *(active)* |
-| 2 | **Preview filter results** |
-| 3 | **Save response plan** |
-
-Visible on Step 1:
-
-| Field | Value / behavior |
-| --- | --- |
-| Info banner | *"Changes to this incident response plan might affect how incidents are processed and also any custom response plans."* |
-| **`Incident response plan name *`** | `quickstart_response_plan` *(disabled, immutable for the Quickstart plan)* |
-| **`Severity *`** | `Sev3` *(editable - Sev0..Sev4 + Unspecified)* |
-| **`Title contains`** | empty *(comma-list keyword filter)* |
-| **`Title does not contain`** | empty *(exclusion keyword filter)* |
-| Section header | **"Customize the incident response plan (optional)"** |
-| Helper | *"With a custom incident response plan, the agent will learn how to handle this type of incident using similar past incidents and your instructions."* |
-| **`☐ I want a custom response plan.`** | unchecked |
-
 Check the **`I want a custom response plan.`** checkbox. The step list rebuilds into **4 steps**:
 
 ![Custom plan checkbox checked, wizard now has 4 steps](../images/wizard/46-custom-plan-fields.png)
-
-| Step | Label *(after checkbox)* |
-| --- | --- |
-| 1 | **Set up incident filters** |
-| 2 | **Define agent learning** *(was "Preview filter results")* |
-| 3 | **Review custom plan** *(new)* |
-| 4 | **Save response plan** |
 
 Click **`Next`**.
 
@@ -248,16 +222,6 @@ For our prompt the **Suggested tools** table contains roughly these rows (your e
 Click **`+ Manage tools`**. A modal **`Manage tools`** opens, with the full tool catalog alphabetical, a select-all checkbox, and a **`Search`** box at the top:
 
 ![Manage tools modal, full catalog, AnalyzeDeploymentFailures first](../images/wizard/50-manage-tools.png)
-
-The first visible rows give a sense of the catalog breadth:
-
-| Tool | Description excerpt |
-| --- | --- |
-| `AnalyzeDeploymentFailures` | *"Analyzes Azure deployment failures and provides detailed error information for troubleshooting..."* |
-| `CancelScheduledTask` | *"Cancel/delete a scheduled task by its ID"* |
-| `CheckIfResourceExists` | *"Checks if a resource exists in Azure."* |
-| `CheckTcpConnectivity` | *"Check if a connection from the given resource to the target host can be established."* |
-| `CompareRuns` | *"Compares two pipeline runs by their build IDs to identify task-level differences, branch changes, and commit differences."* |
 
 Type **`update`** in the **`Search`** box. The list filters - the search matches both **Tool** and **Description**. For our subscription it returns **one** mutating tool whose description contains *"update"* repeatedly:
 
