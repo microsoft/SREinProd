@@ -96,9 +96,9 @@ The Azure Monitor card reads:
 
 > *"Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."*
 
-A **second** card now appears below: **`2 Quickstart Response Plan`** with a toggle **`Create a default response plan`** *(default: ON)*. Subtitle: *"Add a default incident response plan for the agent to use for Sev3 alerts."*
+A **second** card now appears below: **`2 Quickstart Response Plan`** with a toggle **`Create a default response plan`** *(default: OFF)*. Subtitle: *"Add a default incident response plan for the agent to use for Sev3 alerts."*
 
-Leave the toggle **ON**. A warning banner appears under the toggle:
+Change the toggle to **ON**. A warning banner appears under the toggle:
 
 ![Quickstart toggle ON, autonomous warning banner](../images/wizard/41-quickstart-toggle-on.png)
 
@@ -139,7 +139,7 @@ The empty state is gone; one row is present:
 | **Status** | `On` |
 | **Autonomy level** | `Review` *(visible by horizontal scroll)* |
 
-Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a persistent status pill. The toolbar buttons that were disabled in Step 1 are now live: **`+ New incident response plan`** and selecting a row enables **`Delete`** and **`Turn off`**.
+Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a persistent status pill.
 
 > 🔬 **Sev3, why?** The Quickstart toggle hardcodes Sev3. Sev3 in Azure Monitor is "warning" - not a paging event. We picked it as the workshop-safe default so a Quickstart plan cannot accidentally action a Sev0/Sev1 outage. To change it, click the plan and edit the **`Severity`** field on the wizard's Step 1.
 

@@ -125,13 +125,15 @@ app-insights-demo connector for request volume, failure rate, and the
 top 3 exception types. Use the log-analytics-demo connector for the
 AppServiceHTTPLogs status-code distribution and the most recent
 AppServiceConsoleLogs entry. Also list the App Service alert rules
-currently configured. Then summarise: is this app healthy right now?
+currently configured. Then summarize: is this app healthy right now?
 Cite which connector each fact came from.
 ```
 
 Replace `<suffix>` with the value from `scripts/env.conf` (`WEBAPP_NAME` minus the `app-sreinprod-demo-` prefix).
 
 A correct answer auto-titles the thread something like **"App Service Health Diagnostics"** and replies with a table that **names the connector for every row**, plus an explicit verdict at the bottom:
+
+> 💡 **AI and non-deterministic answers:** Keep in mind that AI-generated answers are non-deterministic and may vary slightly each time. If your answer doesn't match the following sample, review the content of the provided output to ensure the overall outcome is the same.
 
 ![Investigation chat answer with per-fact connector citations](../images/wizard/31-investigation-chat.png)
 
@@ -187,10 +189,6 @@ Three pages plus an external link:
 
 ![Session Insights page, empty state](../images/wizard/34-session-insights.png)
 
-Page header: **"Session Insights"**. Subtitle: *"Review insights generated from agent session activity."*
-
-Empty state copy: *"No session insights found. Generate insights for a thread by clicking the chart icon (📊) in the chat footer."*
-
 Use this when you want a structured analysis of what a chat thread accomplished (root cause, action taken, time-to-resolve). Insights are generated **per-thread, on demand** from the chat footer; they are not produced automatically. For the workshop, leave it empty - facilitators can demo the chart icon if there is time.
 
 #### Resource Mapping
@@ -219,6 +217,8 @@ The right-hand details panel exposes two **per-resource** writeable fields the a
 
 Below `Logs` sits **`Azure Managed Grafana`**. Empty for the workshop. Use it if your team already runs Grafana dashboards for the agent host cluster.
 
+> 🐞 **No Azure Managed Grafana** If you don't see the Azure Managed Grafana option, it means your environment doesn't have any Grafana instances connected.
+
 ### Step 7: Land on the **Operations Hub**
 
 > **Action:** Click the **`Operations Hub`** entry near the top of the left rail.
@@ -226,10 +226,6 @@ Below `Logs` sits **`Azure Managed Grafana`**. Empty for the workshop. Use it if
 This is the agent's landing page once you have done a couple of investigations:
 
 ![Operations Hub overview tab](../images/wizard/36-operations-hub.png)
-
-Page header: **"Operations Hub"**. Subtitle: *"View key metrics, insights, and incident analytics for your agent at a glance."* Three tabs at the top: **`Overview`** *(default)*, **`Incident Analytics`**, **`Automation`**.
-
-Setup-status row reads **"Incidents are not configured"** and shows green checks for `Incidents`, `Code`, `Logs`, `Azure resources`, `Knowledge files`, with a **`Complete setup`** link. The check on `Incidents` here means *the agent is allowed to surface incidents*; the leading text saying they are *not* configured means *no incident system (PagerDuty, ServiceNow) is wired in yet*. Module 5 covers that wiring.
 
 Useful cards on this tab:
 
