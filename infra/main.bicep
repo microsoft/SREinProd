@@ -299,19 +299,17 @@ resource http5xxAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
     ]
     evaluationFrequency: 'PT1M'
     windowSize: 'PT5M'
-    targetResourceType: 'Microsoft.Web/sites'
-    targetResourceRegion: location
     criteria: {
       'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
       allOf: [
         {
+          criterionType: 'StaticThresholdCriterion'
           name: 'Http5xx'
           metricNamespace: 'Microsoft.Web/sites'
           metricName: 'Http5xx'
           operator: 'GreaterThanOrEqual'
           threshold: 5
           timeAggregation: 'Total'
-          criterionType: 'StaticThresholdCriterion'
         }
       ]
     }

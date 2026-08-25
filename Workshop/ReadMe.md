@@ -6,12 +6,12 @@ The lab is built around a real workload - [`Azure-Samples/app-service-dotnet-age
 
 ## Objectives
 
-- understand what Azure SRE Agent is and how it is different from a monitoring dashboard
-- deploy or review a working agent configuration
-- connect the agent to observability and operational systems
-- define safe response plans
-- run a realistic incident drill on the sample app
-- leave with a rollout plan for production
+- Understand what Azure SRE Agent is and how it is different from a monitoring dashboard
+- Deploy or review a working agent configuration
+- Connect the agent to observability and operational systems
+- Define safe response plans
+- Run a realistic incident drill on the sample app
+- Leave with a rollout plan for production
 
 ## Before you start
 
@@ -23,10 +23,10 @@ pwsh .\scripts\deploy-demo-env.ps1
 
 or `azd up`. Either path produces:
 
-- a healthy production slot of the sample web app,
-- a faulty staging slot (`INJECT_ERROR=1`),
+- A healthy production slot of the sample web app,
+- A faulty staging slot (`INJECT_ERROR=1`),
 - Application Insights + Log Analytics,
-- an Http5xx metric alert ready to fire during Module 6.
+- An Http5xx metric alert ready to fire during Module 6.
 
 ## Exercises
 

@@ -30,9 +30,25 @@ For the wider response plan catalog (PagerDuty, ServiceNow, programmatic plan cr
 
 > All lab steps run against the live agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
 
+### At a glance
+
+The lab is 9 steps. Each step below adds the context and the *why*.
+
+1. **Step 1:** **`Builder`** -> **`Incident Response Plans`** -> click **`Connect an incident platform`**.
+2. **Step 2:** Pick **Azure Monitor** in the dropdown, leave **Quickstart toggle ON**, click **`Save`**.
+3. **Step 3:** Back on **Incident Response Plans**, confirm the new `quickstart_response_plan` row.
+4. **Step 4:** Click the `quickstart_response_plan` link, tick **`I want a custom response plan.`**, click **`Next`**.
+5. **Step 5:** Paste the workshop instructions into the **`Enter instructions`** textarea, click **`Generate + review`**.
+6. **Step 6:** Read the generated `### EXECUTION_PLAN ###` and the **Suggested tools** table; spot the `UpdateAppSettings` gap.
+7. **Step 7:** Click **`+ Manage tools`**, search `update`, read `RunAzCliWriteCommands`, close with **`Cancel`** (do not add mutating tools for the workshop).
+8. **Step 8:** Switch to the **`Test the response plan`** tab, glance at the dry-run surface, then click **`Next`**.
+9. **Step 9:** On **Save response plan**, switch the autonomy radio to **`Review`**, leave cooldown at `3 hours`, click **`Save`**.
+
 ### Step 1: Open the empty **Incident Response Plans** page
 
-In the agent's left rail, expand **`Builder`** and click **`Incident Response Plans`**. With no incident platform yet wired, the page renders an empty state:
+> **Action:** In the agent's left rail, expand **`Builder`** and click **`Incident Response Plans`**.
+
+With no incident platform yet wired, the page renders an empty state:
 
 ![Incident Response Plans empty state, Connect button prominent](../images/wizard/37-response-plans-page.png)
 
@@ -46,7 +62,9 @@ In the agent's left rail, expand **`Builder`** and click **`Incident Response Pl
 
 > 🔒 **The most important UI fact in this module.** **`+ New incident response plan`** is **disabled** until an incident platform is connected. A response plan without an incident inbox has nothing to fire on. Workshop participants who skip this step end up writing chat prompts and calling them "plans".
 
-Click **`Connect an incident platform`**. The left rail navigates to **`Incident Platform`** and the page header changes to **"Incident Management"** with the wizard's Step 1 visible.
+> **Action:** Click **`Connect an incident platform`**.
+
+The left rail navigates to **`Incident Platform`** and the page header changes to **"Incident Management"** with the wizard's Step 1 visible.
 
 ### Step 2: Connect **Azure Monitor** as the Incident Platform
 
@@ -68,7 +86,9 @@ Open the dropdown. Three options in this order:
 | **ServiceNow** | Teams routing incidents through ServiceNow ITSM. Requires an instance URL and OAuth app. Out of scope for the workshop. |
 | **Azure Monitor** | The workshop choice. **Zero provisioning**: the agent subscribes to notifications from the resource groups it already manages (in this lab, `rg-sreinprod-demo`). |
 
-Select **Azure Monitor**. A platform card expands below the dropdown:
+> **Action:** Select **`Azure Monitor`**.
+
+A platform card expands below the dropdown:
 
 ![Azure Monitor selected, platform description visible, Quickstart card hidden](../images/wizard/40-azure-monitor-selected.png)
 
@@ -84,7 +104,9 @@ Change the toggle to **ON**. A warning banner appears under the toggle:
 
 > ⚠️ ***"This will create an autonomous response plan that begins processing incidents immediately after the platform is connected."***
 
-Click **`Save`** *(bottom of the page, becomes active once the platform is chosen)*. The page enters a transient **`Connecting...`** state:
+> **Action:** Click **`Save`** at the bottom of the page (becomes active once the platform is chosen).
+
+The page enters a transient **`Connecting...`** state:
 
 ![Connecting state](../images/wizard/42-platform-connected.png)
 
@@ -101,7 +123,9 @@ Within a few seconds the connection completes and the wizard collapses to a sing
 
 ### Step 3: Confirm the Quickstart-created plan
 
-Click **`Incident Response Plans`** in the left rail again. The empty state is gone; one row is present:
+> **Action:** Click **`Incident Response Plans`** in the left rail again.
+
+The empty state is gone; one row is present:
 
 ![Incident Response Plans page with quickstart_response_plan row](../images/wizard/44-response-plans-with-default.png)
 
@@ -121,15 +145,45 @@ Top-right of the page also surfaces **`✅ Azure Monitor is connected`** as a pe
 
 ### Step 4: Convert the Quickstart plan to a custom plan
 
-Click the **`quickstart_response_plan`** link. The plan editor opens with the header **"Edit incident response plan"**. By default it is a **3-step** wizard:
+> **Action:** Click the **`quickstart_response_plan`** link.
+
+The plan editor opens with the header **"Edit incident response plan"**. By default it is a **3-step** wizard:
 
 ![Edit plan, 3-step wizard, custom-plan checkbox unchecked](../images/wizard/45-quickstart-plan-detail.png)
 
-Check the **`I want a custom response plan.`** checkbox. The step list rebuilds into **4 steps**:
+| Step | Label |
+| --- | --- |
+| 1 | **Set up incident filters** *(active)* |
+| 2 | **Preview filter results** |
+| 3 | **Save response plan** |
+
+Visible on Step 1:
+
+| Field | Value / behavior |
+| --- | --- |
+| Info banner | *"Changes to this incident response plan might affect how incidents are processed and also any custom response plans."* |
+| **`Incident response plan name *`** | `quickstart_response_plan` *(disabled, immutable for the Quickstart plan)* |
+| **`Severity *`** | `Sev3` *(editable - Sev0..Sev4 + Unspecified)* |
+| **`Title contains`** | empty *(comma-list keyword filter)* |
+| **`Title does not contain`** | empty *(exclusion keyword filter)* |
+| Section header | **"Customize the incident response plan (optional)"** |
+| Helper | *"With a custom incident response plan, the agent will learn how to handle this type of incident using similar past incidents and your instructions."* |
+| **`☐ I want a custom response plan.`** | unchecked |
+
+> **Action:** Tick the **`I want a custom response plan.`** checkbox.
+
+The step list rebuilds into **4 steps**:
 
 ![Custom plan checkbox checked, wizard now has 4 steps](../images/wizard/46-custom-plan-fields.png)
 
-Click **`Next`**.
+| Step | Label *(after checkbox)* |
+| --- | --- |
+| 1 | **Set up incident filters** |
+| 2 | **Define agent learning** *(was "Preview filter results")* |
+| 3 | **Review custom plan** *(new)* |
+| 4 | **Save response plan** |
+
+> **Action:** Click **`Next`**.
 
 ### Step 5: Type the workshop instructions
 
@@ -144,7 +198,7 @@ The wizard advances to **Step 2: Define agent learning**:
 | **`Add instructions`** | *"Include details such as additional incident context, mitigation, logic, and resolution steps."* Free-text **`Enter instructions`** textarea. |
 | Toolbar buttons | **`Back`**, **`Generate + review`** *(disabled until instructions are typed)*, **`Next`**, **`Cancel`**. |
 
-Paste the workshop response plan **verbatim** into the **`Enter instructions`** textarea:
+> **Action:** Paste the workshop response plan **verbatim** into the **`Enter instructions`** textarea:
 
 ```text
 When an Http5xx alert fires for app-sreinprod-demo:
@@ -167,7 +221,7 @@ When an Http5xx alert fires for app-sreinprod-demo:
 
 ![Instructions textarea filled with the workshop plan](../images/wizard/48-instructions-typed.png)
 
-**`Generate + review`** activates. Click it. The wizard advances to **Step 3: Review custom plan**.
+> **Action:** Once **`Generate + review`** activates, click it. The wizard advances to **Step 3: Review custom plan**.
 
 ### Step 6: Review the generated `EXECUTION_PLAN`
 
@@ -219,11 +273,25 @@ For our prompt the **Suggested tools** table contains roughly these rows (your e
 
 ### Step 7: Use **Manage tools** to enforce the guardrail
 
-Click **`+ Manage tools`**. A modal **`Manage tools`** opens, with the full tool catalog alphabetical, a select-all checkbox, and a **`Search`** box at the top:
+> **Action:** Click **`+ Manage tools`**.
+
+A modal **`Manage tools`** opens, with the full tool catalog alphabetical, a select-all checkbox, and a **`Search`** box at the top:
 
 ![Manage tools modal, full catalog, AnalyzeDeploymentFailures first](../images/wizard/50-manage-tools.png)
 
-Type **`update`** in the **`Search`** box. The list filters - the search matches both **Tool** and **Description**. For our subscription it returns **one** mutating tool whose description contains *"update"* repeatedly:
+The first visible rows give a sense of the catalog breadth:
+
+| Tool | Description excerpt |
+| --- | --- |
+| `AnalyzeDeploymentFailures` | *"Analyzes Azure deployment failures and provides detailed error information for troubleshooting..."* |
+| `CancelScheduledTask` | *"Cancel/delete a scheduled task by its ID"* |
+| `CheckIfResourceExists` | *"Checks if a resource exists in Azure."* |
+| `CheckTcpConnectivity` | *"Check if a connection from the given resource to the target host can be established."* |
+| `CompareRuns` | *"Compares two pipeline runs by their build IDs to identify task-level differences, branch changes, and commit differences."* |
+
+> **Action:** Type **`update`** in the **`Search`** box.
+
+The list filters - the search matches both **Tool** and **Description**. For our subscription it returns **one** mutating tool whose description contains *"update"* repeatedly:
 
 ![Manage tools filtered to "update", RunAzCliWriteCommands description visible](../images/wizard/51-manage-tools-update-filter.png)
 
@@ -231,17 +299,19 @@ The full **`RunAzCliWriteCommands`** description is itself a hand-coded guardrai
 
 > *"Execute az commands for Azure resource write operations. **Requires user approval before execution.** USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid. **ALLOWED: 'create', 'update', 'set', 'scale', 'start', 'stop', 'restart', 'add' FORBIDDEN: 'delete', 'remove', 'aks command invoke' commands NOT allowed for safety.** DO NOT USE for: DGrep queries, log analysis, diagnostic data, telemetry queries - use PerformDgrepSearch tool instead. EXAMPLES: - Create: 'az containerapp create -g MyRG -n MyApp --subscription `<subId>` --image myimage:latest' - Update: 'az webapp update -g MyRG -n MyApp --set httpsOnly=true --subscription `<subId>`' - Scale: 'az webapp scale -g MyRG -n MyApp --instance-count 3 --subscription `<subId>`' **BEST PRACTICES: - Run read command first to understand current state - Explain what will change - Include rollback commands when possible - Requires USER APPROVAL before execution # Pre-execution User Notification - Notify users concisely before executing any command"***
 
-For this workshop, **do not add** any mutating tool. The point of the plan is to *diagnose and propose*, not to *act*. Close the modal with **`Cancel`**.
+> **Action:** For this workshop, **do not add** any mutating tool. The point of the plan is to *diagnose and propose*, not to *act*. Close the modal with **`Cancel`**.
 
 > 🔒 **The structural pattern.** Tool descriptions encode policy ("Requires user approval", "FORBIDDEN: delete") in **prose** that the model must honor. The **structural** controls are: (a) what tools the plan can call at all (this picker), and (b) the autonomy level (Step 9). Always treat the picker as the source of truth - never rely on the EXECUTION_PLAN's prose alone to keep mutating tools idle. |
 
 ### Step 8: Peek at the **Test the response plan** tab
 
-Click the **`Test the response plan`** tab next to *Review custom incident response plan*:
+> **Action:** Click the **`Test the response plan`** tab next to *Review custom incident response plan*:
 
 ![Test the response plan tab, empty state](../images/wizard/52-test-tab.png)
 
-This is a dry-run surface: the agent processes the plan against a synthetic Sev3 incident so you can read the chain of tool calls without waiting for a real alert. It is empty until you trigger a test from this tab. For the workshop we skip it - we will trigger a real Http5xx burst in Module 6 instead. Switch back to **`Review custom incident response plan`** and click **`Next`**.
+This is a dry-run surface: the agent processes the plan against a synthetic Sev3 incident so you can read the chain of tool calls without waiting for a real alert. It is empty until you trigger a test from this tab. For the workshop we skip it - we will trigger a real Http5xx burst in Module 6 instead.
+
+> **Action:** Switch back to **`Review custom incident response plan`** and click **`Next`**.
 
 ### Step 9: Set the autonomy level and save
 
@@ -260,7 +330,7 @@ Three controls live on this step:
 
 > ⚠️ **The Quickstart trap.** Even though the Quickstart-created row reads **Autonomy: Review** on the table, opening the plan and ticking **`I want a custom response plan.`** resets the radio on this step to **`Autonomous (Default)`**. **Always re-select `Review` before saving** unless you have done the work to make the plan idempotent and the tools have explicit rollback paths.
 
-Click the **`Review`** radio. Leave the cooldown at **3 hours**. Click **`Save`**.
+> **Action:** Click the **`Review`** radio. Leave the cooldown at **3 hours**. Click **`Save`**.
 
 ![Plan saved: row reads Created / On / Review](../images/wizard/55-saved-plan-list.png)
 

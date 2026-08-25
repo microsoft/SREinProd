@@ -30,9 +30,25 @@ For Application Insights connector configuration details, see [Connectors in Azu
 
 > All lab steps run against the live agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
 
+### At a glance
+
+The lab is 7 steps. Each step below adds the context and the *why*.
+
+1. **Step 1:** **`Builder`** -> **`Connectors`** -> **`+ Add connector`** -> tick **`Application Insights`** -> **`Next`**.
+2. **Step 2:** Fill **Name** = `app-insights-demo`, pick the workshop App Insights resource, leave **Managed identity** = `System assigned`, click **`Next`**. (If needed, grant **Reader** to the agent's MI on the App Insights RG first.)
+3. **Step 3:** On **Review + add**, click **`Add connector`**.
+4. **Step 4:** Open a **`+ New Chat Thread`** and paste the cited investigation prompt verbatim.
+5. **Step 5:** Click **`View trace`** in the chat footer to inspect the span tree.
+6. **Step 6:** Tour the **Monitor** sub-nav: **Session Insights**, **Resource Mapping**, **Logs**, **Azure Managed Grafana**.
+7. **Step 7:** Open **`Operations Hub`** and verify the **`Active Connectors (4)`** card and the **`Daily Volume by Source`** chart.
+
 ### Step 1: Add the **Application Insights** connector
 
-In the agent's left rail, expand **`Builder`** and click **`Connectors`**. The page from Module 3 should already show **Telemetry (1)** with `log-analytics-demo` and **Code Repository (1)** with `app-service-dotnet-agent-tutorial`. Click **`+ Add connector`**.
+> **Action:** In the agent's left rail, expand **`Builder`** and click **`Connectors`**.
+
+The page from Module 3 should already show **Telemetry (1)** with `log-analytics-demo` and **Code Repository (1)** with `app-service-dotnet-agent-tutorial`.
+
+> **Action:** Click **`+ Add connector`**.
 
 The same 3-step wizard from Module 3 opens. On the **`Choose a connector`** step, leave the **`Telemetry`** tab selected and pick the **`Application Insights`** tile. The tile's description reads:
 
@@ -42,7 +58,7 @@ The same 3-step wizard from Module 3 opens. On the **`Choose a connector`** step
 
 > 🐞 **Same gotcha as Module 3.** Clicking the body of the tile sometimes only highlights it. If `Next` stays disabled, click the small checkbox at the top-left corner of the tile.
 
-Click **`Next`**.
+> **Action:** Tick the **`Application Insights`** tile and click **`Next`**.
 
 ### Step 2: **Set up Application Insights connector**
 
@@ -77,13 +93,15 @@ The header changes to **"Set up Application Insights connector"**. Three require
 >   --scope "/subscriptions/<subId>/resourceGroups/rg-sreinprod-demo"
 > ```
 
-Click **`Next`**.
+> **Action:** Fill the three fields above, then click **`Next`**.
 
 ### Step 3: **Review + add**
 
 The **Review + add** pane echoes back the four values you set. Verify the **Application Insights resource** matches `APP_INSIGHTS_NAME` from `scripts/env.conf`.
 
 ![Review + add pane for the App Insights connector](../images/wizard/29-app-insights-review.png)
+
+> **Action:** Click **`Add connector`**.
 
 The dialog closes and the **Connectors** page now lists two telemetry connectors:
 
@@ -99,7 +117,7 @@ The dialog closes and the **Connectors** page now lists two telemetry connectors
 
 ### Step 4: Run the cited investigation prompt
 
-Open a **`+ New Chat Thread`** and paste the prompt **verbatim**:
+> **Action:** Open a **`+ New Chat Thread`** and paste the prompt **verbatim**:
 
 ```text
 Investigate app-sreinprod-demo-<suffix> for the last 1 hour. Use the
@@ -138,11 +156,15 @@ Followed by a **Verdict: healthy** paragraph that lists the data points it used.
 
 ### Step 5: Inspect the trace via **`View trace`**
 
-In the chat thread's top-right corner, click **`View trace`**. A modal opens with the thread ID, the agent name, your user identity, and a span tree:
+> **Action:** In the chat thread's footer, click **`View trace`**.
+
+A modal opens with the thread ID, the agent name, your user identity, and a span tree:
 
 ![View trace dialog header, span tree collapsed](../images/wizard/32-investigation-trace.png)
 
-Expand the **`meta_agent`** span. The tree shows:
+> **Action:** Expand the **`meta_agent`** span.
+
+The tree shows:
 
 ![View trace dialog, meta_agent span expanded](../images/wizard/33-trace-expanded.png)
 
@@ -159,7 +181,9 @@ Close the trace dialog.
 
 ### Step 6: Tour the **Monitor** sub-nav
 
-Collapse **Builder** in the left rail and expand **Monitor**:
+> **Action:** Collapse **Builder** in the left rail and expand **Monitor**.
+
+Three pages plus an external link:
 
 #### Session Insights
 
@@ -197,7 +221,9 @@ Below `Logs` sits **`Azure Managed Grafana`**. Empty for the workshop. Use it if
 
 ### Step 7: Land on the **Operations Hub**
 
-Click the **`Operations Hub`** entry near the top of the left rail. This is the agent's landing page once you have done a couple of investigations:
+> **Action:** Click the **`Operations Hub`** entry near the top of the left rail.
+
+This is the agent's landing page once you have done a couple of investigations:
 
 ![Operations Hub overview tab](../images/wizard/36-operations-hub.png)
 

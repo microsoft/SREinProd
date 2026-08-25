@@ -31,10 +31,24 @@ For the catalog and configuration reference, see [Connectors in Azure SRE Agent]
 
 > The portal at `https://sre.azure.com` exposes a **3-step Add connector wizard** (`Choose a connector`, `Set up connector`, `Review + add`). The wizard is the same shape no matter which tile you pick. We will walk it for **Log Analytics Workspace** because the workshop's workspace already exists from Module 1 and pointing the agent at it is a measurable end-to-end success.
 
+### At a glance
+
+The lab is 7 steps. Each step below adds the context and the *why*.
+
+1. **Step 1:** In the agent, **`Builder`** -> **`Connectors`** opens the page.
+2. **Step 2:** Toolbar **`+ Add connector`** opens the 3-step wizard.
+3. **Step 3:** On the **Telemetry** tab, tick **`Log Analytics Workspace`**, click **`Next`**.
+4. **Step 4:** Fill **Name** = `log-analytics-demo`, pick the workshop workspace, leave **Managed identity** = `System assigned`, click **`Next`**. (If needed, grant **Log Analytics Reader** to the agent's MI first.)
+5. **Step 5:** On **Review + add**, click **`Add connector`**.
+6. **Step 6:** Open a **`+ New Chat Thread`** and paste the validation prompt. Confirm tables + KQL rows return.
+7. **Step 7:** Decide whether to keep or delete the connector via the row's **`...`** kebab menu.
+
 ### Step 1: Open the Connectors page
 
-1. Open the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
-2. In the left navigation, expand **`Builder`** and click **`Connectors`**.
+> **Action:**
+>
+> 1. Open the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
+> 2. In the left navigation, expand **`Builder`** and click **`Connectors`**.
 
 You should see the page header **"Connectors"** with the introductory copy:
 
@@ -46,7 +60,9 @@ The toolbar exposes **`+ Add connector`**, **`↻ Refresh`**, **`🗑 Remove`** 
 
 ### Step 2: Open the **Add connector** wizard
 
-Click **`+ Add connector`** on the toolbar. A side dialog titled **"Connectors"** opens with a 3-step header:
+> **Action:** Click **`+ Add connector`** on the toolbar.
+
+A side dialog titled **"Connectors"** opens with a 3-step header:
 
 | # | Step name |
 | --- | --- |
@@ -78,7 +94,7 @@ Tick the checkbox on the **`Log Analytics Workspace`** tile. The tile's checkbox
 
 > 🐞 **Known gotcha:** clicking the body of a tile sometimes only highlights it without toggling its checkbox. If **`Next`** stays disabled, click the small checkbox at the top-left corner of the tile directly.
 
-Click **`Next`**.
+> **Action:** Tick the checkbox on the **`Log Analytics Workspace`** tile, then click **`Next`**.
 
 ### Step 4: **Set up connector** - configure the workspace
 
@@ -109,7 +125,7 @@ The dialog header changes to **"Set up Log Analytics connector"**. Three require
 >
 > Alternatively, point the connector at the workspace under `rg-sreinprod-app` (the one created by `azd up` for the demo web app), since the agent already holds `Log Analytics Reader` there from Module 2's Privileged-mode role assignment.
 
-Click **`Next`**.
+> **Action:** Fill the three fields above, then click **`Next`**.
 
 ### Step 5: **Review + add** - commit the connector
 
@@ -124,7 +140,7 @@ The dialog header changes to **"Review + add"** and echoes back the four values 
 | **Log Analytics workspace** | `log-sreinprod-demo-<suffix>` |
 | **Managed identity** | `System assigned` |
 
-Click **`Add connector`**.
+> **Action:** Click **`Add connector`**.
 
 The dialog closes and you land back on the **Connectors** page. The toolbar now also shows **`Search`**, **`Expand all`**, and **`Collapse all`**, and the page lists two collapsible groups:
 
@@ -142,7 +158,7 @@ The dialog closes and you land back on the **Connectors** page. The toolbar now 
 
 ### Step 6: Validate from chat
 
-Open a **`+ New Chat Thread`** in the agent's left rail (the icon at the very top, above **Search Threads**) and ask:
+> **Action:** Open a **`+ New Chat Thread`** in the agent's left rail (the icon at the very top, above **Search Threads**) and ask:
 
 ```text
 List the table names available in the log-analytics-demo connector and show the 3 most recent AppServiceHTTPLogs entries from the last hour. If AppServiceHTTPLogs has no rows, list whatever tables you do see and show 3 rows from each.
@@ -162,7 +178,9 @@ A correct answer:
 
 ### Step 7: Manage and clean up
 
-On the SRE Agent portal, return to the Connectors page. Hover the `log-analytics-demo` row and click the **`...`** kebab button. Two actions are exposed:
+> **Action:** On the SRE Agent portal, return to the Connectors page. Hover the `log-analytics-demo` row and click the **`...`** kebab button.
+
+Two actions are exposed:
 
 | Action | When to use it |
 | --- | --- |
