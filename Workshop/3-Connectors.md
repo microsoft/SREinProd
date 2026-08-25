@@ -2,9 +2,11 @@
 
 [← Module 2: Deploy the Agent](./2-Deploy-Agent.md) | [Workshop home](./ReadMe.md) | [Next: Module 4 →](./4-Connect-Observability.md)
 
+[Learning companion: connector concepts, discussion, and reference](../Learning/3-Connectors.md)
+
 ## Objective
 
-Extend the agent's tool surface beyond what Module 2 wired up by adding a **connector**. Connectors are the agent's pluggable integrations: telemetry stores it can query (Log Analytics, Application Insights, Datadog, Splunk, etc.) and code repositories it can read (you already added one in Module 2: `app-service-dotnet-agent-tutorial`).
+Add a named **Log Analytics Workspace** connector to the agent and validate that it can query the workshop workspace.
 
 In this module the participants:
 
@@ -17,23 +19,13 @@ In this module the participants:
 > Time: ~25 min (5 min framing, 15 min hands-on, 5 min discussion).
 > Prereq: a working agent from Module 2 (`sreagent-sreinprod`), and the `log-sreinprod-demo-<suffix>` workspace from Module 1 (visible in `scripts/env.conf`).
 
-## What a connector is (and is not)
-
-| Aspect | What it is | What it is not |
-| --- | --- | --- |
-| **Connectors** | Optional, discrete tool integrations the agent can call to read or write external systems while reasoning about an incident. Telemetry connectors give the agent KQL access to specific workspaces and code connectors give it indexed source. | A replacement for the Azure RBAC the agent already has on the resources you attached in Module 2 |
-| **Examples in the catalog** | **Telemetry**: Azure Data Explorer, Log Analytics Workspace, Application Insights, Datadog, Elasticsearch, Dynatrace, New Relic, Splunk, Hawkeye. **Code Repository**: GitHub, Azure DevOps. | Anything reachable purely through Azure RBAC (the agent already has that path from Module 2) |
-| **Why use one** | The agent can take a closed-loop action: query a specific workspace by name, file a ticket, post to chat, etc. The connector becomes a named tool the agent picks when reasoning. | A connector does not bypass the agent's response plan or its RBAC. You still control approvals and the connector's identity is the agent's managed identity. |
-
-For the catalog and configuration reference, see [Connectors in Azure SRE Agent](https://go.microsoft.com/fwlink/?linkid=2341945) on Microsoft Learn.
-
 ## Lab steps
 
-> The portal at `https://sre.azure.com` exposes a **3-step Add connector wizard** (`Choose a connector`, `Set up connector`, `Review + add`). The wizard is the same shape no matter which tile you pick. We will walk it for **Log Analytics Workspace** because the workshop's workspace already exists from Module 1 and pointing the agent at it is a measurable end-to-end success.
+> The portal at `https://sre.azure.com` exposes a **3-step Add connector wizard**: `Choose a connector`, `Set up connector`, and `Review + add`.
 
 ### At a glance
 
-The lab is 7 steps. Each step below adds the context and the *why*.
+The lab is 7 steps.
 
 1. **Step 1:** In the agent, **`Builder`** -> **`Connectors`** opens the page.
 2. **Step 2:** Toolbar **`+ Add connector`** opens the 3-step wizard.
@@ -50,45 +42,15 @@ The lab is 7 steps. Each step below adds the context and the *why*.
 > 1. Open the agent at `https://sre.azure.com/agents/subscriptions/<subId>/resourceGroups/rg-sreinprod-agent/providers/Microsoft.App/agents/sreagent-sreinprod`.
 > 2. In the left navigation, expand **`Builder`** and click **`Connectors`**.
 
-You should see the page header **"Connectors"** with the introductory copy:
-
-> *Add a connector to give the agent additional tools for automating incident handling.* [Learn more about connectors](https://go.microsoft.com/fwlink/?linkid=2341945)
-
-The toolbar exposes **`+ Add connector`**, **`↻ Refresh`**, **`🗑 Remove`** (disabled until rows are selected), and a **`Category : All`** filter dropdown.
-
-> ℹ️ At this point the page already shows one connector group, **`Code Repository (1)`**, listing the `app-service-dotnet-agent-tutorial` row you wired up in Module 2. That row is itself a connector. Adding **Log Analytics Workspace** in this module will cause a second group, **`Telemetry (1)`**, to appear above it.
+Confirm the page already shows **`Code Repository (1)`** with the `app-service-dotnet-agent-tutorial` row from Module 2.
 
 ### Step 2: Open the **Add connector** wizard
 
 > **Action:** Click **`+ Add connector`** on the toolbar.
 
-A side dialog titled **"Connectors"** opens with a 3-step header:
-
-| # | Step name |
-| --- | --- |
-| 1 | Choose a connector |
-| 2 | Set up connector |
-| 3 | Review + add |
-
-Footer buttons: **`Back`**, **`Next`** (disabled until each step is valid), **`Cancel`**.
-
 ### Step 3: **Choose a connector** - pick **Log Analytics Workspace**
 
 ![Add connector dialog, Telemetry tab with 9 tiles](../images/wizard/18-add-connector-dialog.png)
-
-The first step shows a category tab strip. The **`Telemetry`** tab is selected by default and lists nine tiles:
-
-| Tile | What it integrates |
-| --- | --- |
-| **Azure Data Explorer** | Kusto cluster databases |
-| **Log Analytics Workspace** ⭐ this lab | A specific Log Analytics workspace |
-| **Application Insights** | A specific Application Insights resource |
-| **Datadog** | Datadog metrics and logs |
-| **Elasticsearch** | Elastic stack |
-| **Dynatrace** | Dynatrace tenant |
-| **New Relic** | New Relic account |
-| **Splunk** | Splunk index |
-| **Hawkeye** | Hawkeye observability platform |
 
 Tick the checkbox on the **`Log Analytics Workspace`** tile. The tile's checkbox toggles to checked and the **`Next`** button activates.
 
@@ -106,9 +68,9 @@ The dialog header changes to **"Set up Log Analytics connector"**. Three require
 | --- | --- | --- |
 | **Name\*** | `log-analytics-demo` | This is how the agent will refer to the connector in chat. Lowercase, hyphenated. |
 | **Log Analytics workspace\*** | `log-sreinprod-demo-<suffix>` (make sure you select the RG created with the workshop) | Combobox listing every workspace the *agent's identity* can already see. Pick the one Module 1 created. |
-| **Managed identity\*** | **`System assigned`** *(default)* | The connector authenticates to Log Analytics as the agent itself. Leave the default. The **`Add identity`** link is for advanced setups where you want a user-assigned identity instead. |
+| **Managed identity\*** | **`System assigned`** *(default)* | Leave the default. |
 
-> ℹ️ As soon as you pick the workspace, an info banner appears below it: *"Log Analytics Reader role needed on: <rg-name>"*. The wizard cannot **grant** that role for you (unlike Module 2's *Azure resources* card, which did role assignments inline); it is informational only. If the agent's managed identity does not already have **Log Analytics Reader** on the RG holding the workspace, the connector will land in **`Status: Failed`** instead of **`Connected`**. For the workshop, the agent's RBAC on `rg-sreinprod-app` from Module 2 does **not** automatically extend to `rg-sreinprod-demo`. If the workspace lives in a different RG than the one you attached in Module 2, grant the role explicitly:
+> ℹ️ After you pick the workspace, the banner reads *"Log Analytics Reader role needed on: `<rg-name>`"*. The wizard does not grant the role. Without **Log Analytics Reader** on the RG holding the workspace, the connector lands in **`Status: Failed`** instead of **`Connected`**. If needed, grant the role explicitly:
 >
 > ```powershell
 > $miId = az resource show `
@@ -142,7 +104,7 @@ The dialog header changes to **"Review + add"** and echoes back the four values 
 
 > **Action:** Click **`Add connector`**.
 
-The dialog closes and you land back on the **Connectors** page. The toolbar now also shows **`Search`**, **`Expand all`**, and **`Collapse all`**, and the page lists two collapsible groups:
+The dialog closes and the **Connectors** page lists two groups:
 
 ![Connectors page after Log Analytics added, two groups](../images/wizard/23-connectors-after-log-analytics.png)
 
@@ -172,9 +134,7 @@ A correct answer:
 - runs a KQL query against the workspace, and
 - returns 3 rows whose `Host` column matches `app-sreinprod-demo-<suffix>.azurewebsites.net` (production) and `app-sreinprod-demo-<suffix>-staging.azurewebsites.net` (staging slot).
 
-**Why this prompt:** the model has to (a) call out to the new connector by name, (b) issue a `getschema` to enumerate tables, then (c) run a parameterised KQL query. If any of those three steps fails the answer will either be empty, hallucinate table names that are not in the workspace, or return host names that do not match your `azd env get-values`.
-
-> 💡 **Cross-check with Module 2.** The `Host` values in the answer should match the `WEBAPP_NAME` in `scripts/env.conf` and the **`AlwaysOn`** pings hitting both slots prove that Module 1's deployment is healthy. If the rows reference a different web app, the connector is pointed at the wrong workspace.
+> ⚠️ **Failure diagnostic:** An empty result, tables not present in the workspace, or `Host` values that do not match `WEBAPP_NAME` in `scripts/env.conf` indicates a connector, permission, or target-workspace problem. Expected tables include `AppServiceHTTPLogs`, `AppServiceAppLogs`, `AppServiceConsoleLogs`, and `AppServiceAuditLogs`; expected hosts are the production and staging names above. If the rows reference a different web app, repoint the connector.
 
 ### Step 7: Manage and clean up
 
@@ -191,13 +151,6 @@ For the workshop you can **leave the connector in place**. Module 4 will use it 
 
 If your tenant security policy forbids leaving a Log Analytics connector wired to a learning environment, **Delete** the connector at the end of Module 3 and re-add it at the start of Module 4.
 
-## Discussion prompts
-
-- The agent already had RBAC on `rg-sreinprod-app` from Module 2. **What did adding the Log Analytics Workspace connector buy you that the implicit RBAC path didn't?** *(Hint: a named tool, predictable target workspace, less ambiguity in chat prompts, easier to revoke.)*
-- The wizard surfaced the **`Log Analytics Reader role needed`** banner but did not assign the role itself. **Should it?** *(Module 2's Azure resources card does grant roles inline; the Connectors flow does not. Discuss the trade-off: explicit security review vs. one-click setup.)*
-- Walk through the other Telemetry tiles (Datadog, Splunk, etc.). **For each one your team actually runs, what is the minimum scope a connector should have?**
-- The kebab menu only exposes **Edit** and **Delete**. There is no **Disable** toggle. **How would you take a connector offline temporarily without losing its configuration?** *(Options: rotate the managed identity's RBAC, scope the connector to an empty workspace, delete and re-add from a saved template in your IaC repo.)*
-
 ## Validation checklist
 
 - [ ] The **Connectors** page shows the **Telemetry (1)** group with `log-analytics-demo` / Log Analytics / Connected / Agent.
@@ -206,29 +159,10 @@ If your tenant security policy forbids leaving a Log Analytics connector wired t
 - [ ] The host names returned by KQL match the `WEBAPP_NAME` recorded in `scripts/env.conf`.
 - [ ] The kebab (`...`) menu on the row exposes **Edit connector** and **Delete connector**, and you know which one your security policy will require at the end of the workshop.
 
-## Reference: full screenshot index
+## Learning summary
 
-The screenshots embedded above capture the moments where the wizard transitions or where validation evidence is highest-value. The full set (captured against the live portal in June 2026) lives under `images/wizard/` for facilitators who want to build a slide deck:
+You added a named Log Analytics connector, granted the agent's managed identity the required read scope, validated real KQL results from chat, and reviewed how to edit or remove the connection safely.
 
-| # | Screen | File |
-| --- | --- | --- |
-| 17 | Connectors page (initial: Code Repository only) | [17-connectors-page.png](../images/wizard/17-connectors-page.png) |
-| 18 | Add connector, Choose a connector (Telemetry tab, 9 tiles) ⭐ embedded | [18-add-connector-dialog.png](../images/wizard/18-add-connector-dialog.png) |
-| 19 | Add connector, Log Analytics Workspace selected | [19-log-analytics-selected.png](../images/wizard/19-log-analytics-selected.png) |
-| 20 | Set up Log Analytics connector (empty form) | [20-set-up-connector.png](../images/wizard/20-set-up-connector.png) |
-| 21 | Set up connector, workspace dropdown open ⭐ embedded | [21-workspace-dropdown.png](../images/wizard/21-workspace-dropdown.png) |
-| 22 | Review + add ⭐ embedded | [22-review-add.png](../images/wizard/22-review-add.png) |
-| 23 | Connectors page after Log Analytics added (2 groups) ⭐ embedded | [23-connectors-after-log-analytics.png](../images/wizard/23-connectors-after-log-analytics.png) |
-| 24 | Connector row context menu (Edit / Delete) | [24-connector-row-menu.png](../images/wizard/24-connector-row-menu.png) |
-| 25 | Chat validation: tables and AppServiceHTTPLogs rows ⭐ embedded | [25-chat-validate-connector.png](../images/wizard/25-chat-validate-connector.png) |
+[Read the connector concepts, discussion prompts, and full screenshot reference →](../Learning/3-Connectors.md)
 
-## Further reading
-
-- [Connectors in Azure SRE Agent](https://go.microsoft.com/fwlink/?linkid=2341945): the official catalog and configuration reference.
-- [Module 2: Deploy the Agent](./2-Deploy-Agent.md) wired up the GitHub **Code Repository** connector that already shows up on the Connectors page.
-- [Module 4: Connect Observability](./4-Connect-Observability.md) takes the Log Analytics connector you just added and shows how to drive it from chat at incident time.
-- [Module 5: Response Plans and Guardrails](./5-Response-Plans-and-Guardrails.md) governs *when* the agent is allowed to invoke any connector tool.
-
-## Notes for repo owners
-
-Re-capture screenshots `17` to `25` if the portal redesigns the **Connectors** page or the **Add connector** wizard. The most volatile elements are the tile catalog (new providers ship regularly) and the kebab menu actions (a `Disable` toggle has been requested and may land before this doc is updated).
+[← Module 2: Deploy the Agent](./2-Deploy-Agent.md) | [Workshop home](./ReadMe.md) | [Next: Module 4 →](./4-Connect-Observability.md)

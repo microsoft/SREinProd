@@ -73,9 +73,7 @@ SREinProd/
 │   ├── 3-Connectors.md
 │   ├── 4-Connect-Observability.md
 │   ├── 5-Response-Plans-and-Guardrails.md
-│   ├── 6-Incident-Drill.md
-│   ├── 7-Production-Rollout.md
-│   └── Bonus.md
+│   └── 6-Incident-Drill.md
 ├── infra/
 │   ├── README.md
 │   ├── main.bicep             # App Service + slot + AI + LA + Http5xx alert
@@ -93,7 +91,7 @@ SREinProd/
 
 ## Suggested workshop modules
 
-See [Workshop/ReadMe.md](./Workshop/ReadMe.md).
+Follow the hands-on exercises in [Workshop/ReadMe.md](./Workshop/ReadMe.md). Deeper concepts, discussion prompts, and reference material are available in the [Learning companion](./Learning/README.md).
 
 ## Notes
 
