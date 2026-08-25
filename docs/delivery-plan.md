@@ -8,4 +8,3 @@
 - Module 4: Connect observability and code/incident systems
 - Module 5: Create response plans and guardrails
 - Module 6: Run an incident drill
-- Module 7: Production rollout strategy

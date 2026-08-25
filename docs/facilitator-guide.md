@@ -12,7 +12,6 @@
 - Start with review mode.
 - Explain why guardrails matter.
 - Narrate the evidence chain the agent is using.
-- Reserve time for production rollout discussion.
 
 ## Sample workload
 

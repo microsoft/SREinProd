@@ -4,6 +4,12 @@ This workshop is designed to help IT/Ops and SRE teams understand how Azure SRE 
 
 The lab is built around a real workload - [`Azure-Samples/app-service-dotnet-agent-tutorial`](https://github.com/Azure-Samples/app-service-dotnet-agent-tutorial) - deployed by the Bicep template in this repo. See [`docs/sample-app.md`](../docs/sample-app.md) for the integration details, and [`AZD-SETUP.md`](../AZD-SETUP.md) or [`PS-SETUP.md`](../PS-SETUP.md) for the deployment.
 
+## How to use these materials
+
+The pages in this folder are the hands-on path: follow them in order during the workshop. They contain the actions, required context, safety notes, troubleshooting, and validation needed to complete each exercise.
+
+For deeper explanations, discussion prompts, reference tables, and facilitator material, use the [Learning companion](../Learning/README.md). Each content-heavy exercise links to its matching companion page.
+
 ## Objectives
 
 - Understand what Azure SRE Agent is and how it is different from a monitoring dashboard
@@ -36,5 +42,3 @@ or `azd up`. Either path produces:
 4. [Connect Observability](./4-Connect-Observability.md)
 5. [Response Plans and Guardrails](./5-Response-Plans-and-Guardrails.md)
 6. [Incident Drill](./6-Incident-Drill.md)
-7. [Production Rollout](./7-Production-Rollout.md)
-8. [Bonus](./Bonus.md)
