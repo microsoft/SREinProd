@@ -1,6 +1,6 @@
 # SREinProd Workshop
 
-A half-day workshop on deploying and using Azure SRE Agent in productionThis workshop is designed for IT/Ops, SRE, and platform engineering teams who want to see how Azure SRE Agent can be deployed, connected to production signals, and used to investigate and remediate incidents.
+A half-day workshop on deploying and using Azure SRE Agent in production. This workshop is designed for IT/Ops, SRE, and platform engineering teams who want to see how Azure SRE Agent can be deployed, connected to production signals, and used to investigate and remediate incidents.
 
 ## Suggested audience
 
@@ -66,8 +66,16 @@ SREinProd/
 │   ├── delivery-plan.md
 │   ├── demo-runbook.md
 │   └── sample-app.md          # integration story for the .NET sample
+├── Learning/                  # concepts, discussions, and reference material
+│   ├── README.md
+│   ├── 1-Foundation.md
+│   ├── 2-Deploy-Agent.md
+│   ├── 3-Connectors.md
+│   ├── 4-Connect-Observability.md
+│   ├── 5-Response-Plans-and-Guardrails.md
+│   └── 6-Incident-Drill.md
 ├── Workshop/
-│   ├── ReadMe.md
+│   ├── ReadMe.md              # streamlined hands-on path
 │   ├── 1-Foundation.md
 │   ├── 2-Deploy-Agent.md
 │   ├── 3-Connectors.md
@@ -89,9 +97,20 @@ SREinProd/
 └── sample-app/                # cloned on demand; gitignored
 ```
 
-## Suggested workshop modules
+## Workshop content
 
-Follow the hands-on exercises in [Workshop/ReadMe.md](./Workshop/ReadMe.md). Deeper concepts, discussion prompts, and reference material are available in the [Learning companion](./Learning/README.md).
+The published workshop contains six completed modules:
+
+1. [Foundation](./Workshop/1-Foundation.md)
+2. [Deploy the Agent](./Workshop/2-Deploy-Agent.md)
+3. [Connectors](./Workshop/3-Connectors.md)
+4. [Connect Observability](./Workshop/4-Connect-Observability.md)
+5. [Response Plans and Guardrails](./Workshop/5-Response-Plans-and-Guardrails.md)
+6. [Incident Drill](./Workshop/6-Incident-Drill.md)
+
+Use [Workshop/ReadMe.md](./Workshop/ReadMe.md) for the streamlined hands-on path. Each exercise retains only the actions, required context, safety notes, troubleshooting, and validation needed to complete the lab.
+
+Use the [Learning companion](./Learning/README.md) for deeper concepts, discussion prompts, reference tables, screenshot inventories, and maintainer guidance. The unfinished exercises are not included in the published workshop.
 
 ## Notes
 
